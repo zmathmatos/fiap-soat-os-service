@@ -1,0 +1,14 @@
+{
+  "name": "project-helpers",
+  "version": "0.0.0",
+  "description": "Scripts to help us to tests things on the project",
+  "license": "MIT",
+  "author": "",
+  "type": "commonjs",
+  "scripts": {
+    "send-email": "node ./send-test-email.js"
+  },
+  "dependencies": {
+    "nodemailer": "^8.0.2"
+  }
+}

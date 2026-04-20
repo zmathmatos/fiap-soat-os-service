@@ -1,0 +1,1381 @@
+{
+  "info": {
+    "_postman_id": "29c60cc6-e341-48fb-aa6d-2fad59b5845f",
+    "name": "FIAP - Tech Challenge",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "List Users",
+              "id": "2c29631c-b3f8-4ac2-af6e-dee98e1e3a89",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/users",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create User",
+              "id": "6bc97530-5e66-422b-a679-0ee6a23cd528",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Rodrigo Muniz\",\n    \"document\": \"14572457000185\",\n    \"email\": \"rodrigo.muniz@email.com\",\n    \"password\": \"passa_a_word_123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/users",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User by Id",
+              "id": "504e555a-5741-4e7f-b1f9-dee97284e145",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/users/4633dcbf-2b60-4474-9b9d-53590e094078",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "4633dcbf-2b60-4474-9b9d-53590e094078"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User by Document",
+              "id": "e86e6c3a-0019-4cc4-87c9-9c87e3a63d1a",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/users/document/14572457000185",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "document",
+                    "14572457000185"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update User",
+              "id": "5cba4685-7a04-4164-aa27-462f9896578d",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Rodrigo Costa\",\n    \"document\": \"14572457000185\",\n    \"email\": \"rodrigo.muniz@email.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/users/4633dcbf-2b60-4474-9b9d-53590e094078",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "4633dcbf-2b60-4474-9b9d-53590e094078"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete User",
+              "id": "0ab881a7-127c-490f-921f-6c78ec3d1de7",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/users/4633dcbf-2b60-4474-9b9d-53590e094078",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "4633dcbf-2b60-4474-9b9d-53590e094078"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "62c08f23-cd5d-4df7-b700-5ccc78a8ce93"
+        },
+        {
+          "name": "Vehicles",
+          "item": [
+            {
+              "name": "List Vehicles",
+              "id": "3153390a-8d96-4374-affa-c35fccbe1a54",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/vehicles",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "vehicles"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Vehicle",
+              "id": "1612857d-5dc2-4211-9ae8-63c652fa25fd",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"licensePlate\": \"AAA6879\",\n    \"model\": \"Spin\",\n    \"brand\": \"Chevrolet\",\n    \"year\": 2024\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/vehicles",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "vehicles"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Vehicle by Id",
+              "id": "a8481fb7-2547-4bdc-a4ee-9d71e8e4a384",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/vehicles/9631beb7-c624-42bd-9275-e86f6d79ae8b",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "vehicles",
+                    "9631beb7-c624-42bd-9275-e86f6d79ae8b"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Vehicle by License Plate",
+              "id": "17fc7e47-f176-4dc9-8bd5-d462d2c6f347",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/vehicles/license-plate/ABC-1234",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "vehicles",
+                    "license-plate",
+                    "ABC-1234"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Vehicle",
+              "id": "b07a5e26-ecda-4266-a920-30126d9a1fb3",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"licensePlate\": \"AAA6879\",\n    \"brand\": \"Chevrolet\",\n    \"model\": \"Spin\",\n    \"year\": 2024\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/vehicles/91706f35-37c3-4286-9b91-64a49d277931",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "vehicles",
+                    "91706f35-37c3-4286-9b91-64a49d277931"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Vehicle",
+              "id": "a1635ed2-ae28-48cb-8dc5-efeff2afe8e8",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/vehicles/9631beb7-c624-42bd-9275-e86f6d79ae8b",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "vehicles",
+                    "9631beb7-c624-42bd-9275-e86f6d79ae8b"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "4c8db738-d3d8-41dc-97a6-9be5f7313764"
+        },
+        {
+          "name": "Parts",
+          "item": [
+            {
+              "name": "List Parts",
+              "id": "parts-list-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/parts",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "parts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Part",
+              "id": "parts-create-001",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Filtro de Óleo\",\n    \"partNumber\": \"P-001\",\n    \"brand\": \"Bosch\",\n    \"price\": 45.90,\n    \"stockQuantity\": 50\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/parts",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "parts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Part by Id",
+              "id": "parts-get-id-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/parts/9a2a0c39-e9ab-4a98-a140-f80ee40d7ff4",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "parts",
+                    "9a2a0c39-e9ab-4a98-a140-f80ee40d7ff4"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Part by Part Number",
+              "id": "parts-get-number-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/parts/part-number/P-001",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "parts",
+                    "part-number",
+                    "P-001"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Part",
+              "id": "parts-update-001",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Filtro de Óleo Premium\",\n    \"partNumber\": \"P-001\",\n    \"brand\": \"Mahle\",\n    \"price\": 55.90,\n    \"stockQuantity\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/parts/<part-id>",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "parts",
+                    "<part-id>"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Part",
+              "id": "parts-delete-001",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/parts/<part-id>",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "parts",
+                    "<part-id>"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "parts-folder-001"
+        },
+        {
+          "name": "Services",
+          "item": [
+            {
+              "name": "List Services",
+              "id": "services-list-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/services",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Service",
+              "id": "services-create-001",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Troca de Óleo\",\n    \"serviceCode\": \"SRV-001\",\n    \"price\": 150.00,\n    \"duration\": 60\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/services",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service by Id",
+              "id": "services-get-id-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/services/d358b16c-2b6c-4d9e-bbc8-f119e501e17b",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "services",
+                    "d358b16c-2b6c-4d9e-bbc8-f119e501e17b"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service by Service Code",
+              "id": "services-get-code-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/services/service-code/SRV-001",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "services",
+                    "service-code",
+                    "SRV-001"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Service",
+              "id": "services-update-001",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Troca de Óleo Premium\",\n    \"serviceCode\": \"SRV-001\",\n    \"price\": 200.00,\n    \"duration\": 90\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/services/<service-id>",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "services",
+                    "<service-id>"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Service",
+              "id": "services-delete-001",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/services/<service-id>",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "services",
+                    "<service-id>"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "services-folder-001"
+        },
+        {
+          "name": "Service Orders",
+          "item": [
+            {
+              "name": "Create Service Order",
+              "id": "so-create-001",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"document\": \"12345678901\",\n    \"licensePlate\": \"ABC-1234\",\n    \"partIds\": [\"cebd4687-0e41-4236-b59b-501fc486d7ff\"],\n    \"serviceCodes\": [\"ALIGN-001\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Average Time",
+              "id": "23b45246-44db-44a3-914a-474dc4b8a3df",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/analytics/average-time",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "analytics",
+                    "average-time"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List All Service Orders",
+              "id": "so-list-all-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders?includeFinished=true&orderByStatus=true",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeFinished",
+                      "value": "true",
+                      "uuid": "d616360f-97c6-4cf2-aac2-8572fe31ea37"
+                    },
+                    {
+                      "key": "orderByStatus",
+                      "value": "true",
+                      "type": "text",
+                      "uuid": "c194d403-323c-42da-865d-c8e3084f2215"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Order by ID",
+              "id": "so-get-id-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Order by Number",
+              "id": "so-get-number-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/number/1040",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "number",
+                    "1040"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Orders by User ID",
+              "id": "so-get-user-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/user/ebfef1c7-331b-428c-ac3d-d31525cb55f8",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "user",
+                    "ebfef1c7-331b-428c-ac3d-d31525cb55f8"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Orders by User Document",
+              "id": "544fc8d4-56d1-4cb1-ac61-5a83af48afbe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/user/document/12345678901",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "user",
+                    "document",
+                    "12345678901"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Orders by Vehicle ID",
+              "id": "so-get-vehicle-001",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/vehicle/c4bc7c93-7801-42c9-b21f-a2e02b8ccd5f",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "vehicle",
+                    "c4bc7c93-7801-42c9-b21f-a2e02b8ccd5f"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Orders by Vehicle License Plate",
+              "id": "84b3d6eb-d78d-49a8-a20e-cc98e85118b3",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/vehicle/license-plate/ABC-1234",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "vehicle",
+                    "license-plate",
+                    "ABC-1234"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Service Order",
+              "id": "so-update-001",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"userId\": \"ebfef1c7-331b-428c-ac3d-d31525cb55f8\",\n    \"vehicleId\": \"c4bc7c93-7801-42c9-b21f-a2e02b8ccd5f\",\n    // \"parts\": [\n    //     {\n    //         \"partId\": \"cebd4687-0e41-4236-b59b-501fc486d7ff\",\n    //         \"quantity\": 2\n    //     },\n    //     {\n    //         \"partId\": \"b473f906-567c-4edf-b563-a16d1dd93c04\",\n    //         \"quantity\": 2\n    //     }\n    // ],\n    // \"serviceIds\": [\n    //     \"3bb4eb4a-d174-409f-a339-edc7e275316d\",\n    //     \"540e1f1a-71e3-478a-8e84-a681469b8167\"\n    // ],\n    \"status\": \"Recebido\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Change to In Diagnostic",
+              "id": "so-status-diagnostic-001",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c/in-diagnostic",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                    "in-diagnostic"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Add Parts and Services",
+              "id": "so-add-items-001",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"parts\": [\n        {\n            \"partId\": \"cebd4687-0e41-4236-b59b-501fc486d7ff\",\n            \"quantity\": 2\n        },\n        {\n            \"partId\": \"b473f906-567c-4edf-b563-a16d1dd93c04\",\n            \"quantity\": 2\n        }\n    ],\n    \"serviceIds\": [\n        \"3bb4eb4a-d174-409f-a339-edc7e275316d\",\n        \"540e1f1a-71e3-478a-8e84-a681469b8167\"\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c/add-parts-and-services",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                    "add-parts-and-services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Change to In Execution",
+              "id": "so-status-execution-001",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c/in-execution",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                    "in-execution"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Change to Completed",
+              "id": "so-status-completed-001",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c/completed",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                    "completed"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Change to Delivered",
+              "id": "so-status-delivered-001",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c/delivered",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                    "delivered"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Change to Status",
+              "id": "e3e7eb85-76b6-44a7-9bde-f4d7e59258c3",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"Aguardando aprovação\"\n    // \"status\": \"Em execução\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/4964214d-0dd7-49b2-86dd-c1e5c05b6d2c/status",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "4964214d-0dd7-49b2-86dd-c1e5c05b6d2c",
+                    "status"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Service Order",
+              "id": "so-delete-001",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/admin/service-orders/0fa5eefd-6729-48df-b270-516b07961ee5",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "service-orders",
+                    "0fa5eefd-6729-48df-b270-516b07961ee5"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "so-folder-001"
+        },
+        {
+          "name": "Login",
+          "item": [
+            {
+              "name": "Login",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "43b6f16a-62c6-4496-af5e-0991c0200286",
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.environment.set(\"token\", jsonData.data.token);",
+                      "    pm.globals.set(\"token\", jsonData.data.token);",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "ab713cc3-edce-4155-b643-8329bf26afb2",
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "id": "07cf5e76-16f0-45ff-aa73-643724169a94",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"admin@techchallenge.com\",\n    \"password\": \"admin123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/auth/login",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "9249e894-ca5c-408a-81c3-7907ed24dad8"
+        }
+      ],
+      "id": "476e4935-a195-42ef-90e7-e98a6a0dc1ae",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Customer",
+      "item": [
+        {
+          "name": "Service Orders",
+          "item": [
+            {
+              "name": "Get Service Order by Number",
+              "id": "d4734b36-ee77-4f76-9074-7bf83ceb1eb8",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/customer/service-orders/number/1010",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "customer",
+                    "service-orders",
+                    "number",
+                    "1010"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Orders by User Document",
+              "id": "97dd24c8-f43a-4840-b8cc-ed4b9c4cd751",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/customer/service-orders/user/document/14572457000185",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "customer",
+                    "service-orders",
+                    "user",
+                    "document",
+                    "14572457000185"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Service Orders by Vehicle License Plate",
+              "id": "c193a3e7-bdc7-4ea5-8ca9-c76e826969ea",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/customer/service-orders/vehicle/license-plate/AAA6879",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "customer",
+                    "service-orders",
+                    "vehicle",
+                    "license-plate",
+                    "AAA6879"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Approve Quotation",
+              "id": "a0be2676-b88e-4ee4-9bca-0df4d2423ffb",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/customer/service-orders/1041/quotation/approval",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "customer",
+                    "service-orders",
+                    "1041",
+                    "quotation",
+                    "approval"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reject Quotation",
+              "id": "af5feec3-da9d-4902-bab7-e55d46d35369",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{api}}/customer/service-orders/1041/quotation/rejection",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "customer",
+                    "service-orders",
+                    "1041",
+                    "quotation",
+                    "rejection"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "434cdd4d-445f-44c7-8565-fecfd22349b7"
+        },
+        {
+          "name": "Login",
+          "item": [
+            {
+              "name": "Login",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "7e97c9f5-f3c2-4637-9733-fd84e821abc7",
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "106fb87e-a9f9-4957-8158-52af03d28a3b",
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.environment.set(\"token\", jsonData.token);",
+                      "    pm.globals.set(\"token\", jsonData.token);",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "id": "2e7e6c44-bdbe-4abe-bb74-0c892c899611",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"joao.silva@email.com\",\n    \"password\": \"senha123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/auth/login",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "fd8319eb-846e-4d94-8a29-3f4bbe200e23"
+        }
+      ],
+      "id": "4db7b664-e5c1-425d-b808-8dfbf0c39ee6",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Health check",
+      "id": "86645c06-4d76-4a34-b8fd-4b2482d46cdd",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api}}/health",
+          "host": [
+            "{{api}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "id": "71e5e10f-3022-465f-a92d-09c1d73c43cd",
+      "key": "api",
+      "value": "http://localhost:3000"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+flowchart TB
+    subgraph Local["💻 Ambiente Local"]
+        DC[Docker Compose]
+        APP_C[Container App<br/>Node.js]
+        PG_C[Container PostgreSQL]
+        
+        DC --> APP_C & PG_C
+        APP_C --> PG_C
+    end
+    
+    subgraph Kind["☸️ Kubernetes Local - Kind"]
+        K_CLUSTER[Kind Cluster]
+        K_NS[Namespace: fiap-soat]
+        K_PG[PostgreSQL Deployment]
+        K_APP[App Deployment<br/>2 Replicas]
+        K_SVC[Services]
+        K_HPA[HPA Autoscaling]
+        
+        K_CLUSTER --> K_NS
+        K_NS --> K_PG & K_APP
+        K_NS --> K_SVC & K_HPA
+        K_APP --> K_PG
+    end
+    
+    subgraph AWS["☁️ AWS - Terraform"]
+        VPC[VPC + Subnets]
+        EKS[EKS Cluster]
+        RDS[RDS PostgreSQL]
+        
+        subgraph K8s_AWS["Kubernetes no EKS"]
+            AWS_NS[Namespace: fiap-soat]
+            AWS_APP[App Pods]
+            AWS_SVC[Services + Ingress]
+            AWS_HPA[HPA]
+        end
+        
+        VPC --> EKS & RDS
+        EKS --> AWS_NS
+        AWS_NS --> AWS_APP & AWS_SVC & AWS_HPA
+        AWS_APP --> RDS
+    end
+    
+    DOCKER[DockerHub<br/>fiap-web:latest] -.image.-> APP_C & K_APP & AWS_APP
+    
+    style Local fill:#e3f2fd
+    style Kind fill:#e8eaf6
+    style AWS fill:#fff8e1
+    style K8s_AWS fill:#f3e5f5
+    style DOCKER fill:#0db7ed,color:#fff

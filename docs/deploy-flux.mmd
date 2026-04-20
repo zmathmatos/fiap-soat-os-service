@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph CI["🔄 CI Pipeline"]
+        PUSH[Git Push] --> GHA[GitHub Actions]
+        GHA --> TEST[Jest Tests]
+        TEST --> SONAR[SonarCloud]
+        SONAR --> BUILD[Build]
+    end
+    
+    subgraph CD["🚀 CD Pipeline"]
+        DOCKER_B[Docker Build] --> DOCKER_P[Push DockerHub]
+        DOCKER_P --> K8S_SETUP[Setup Kind]
+        K8S_SETUP --> DEPLOY_DB[Deploy PostgreSQL]
+        DEPLOY_DB --> DEPLOY_APP[Deploy App]
+        DEPLOY_APP --> HEALTH[Health Check]
+    end
+    
+    subgraph Deploy_Targets["🎯 Ambientes"]
+        KIND_ENV[Kind Cluster<br/>Automático]
+        AWS_ENV[EKS Cluster<br/>Manual via Terraform]
+    end
+    
+    BUILD -- ✅ Pass --> DOCKER_B
+    BUILD -- ❌ Fail --> FAIL[Notificar Falha]
+    HEALTH -- ✅ --> KIND_ENV
+    HEALTH -- ❌ --> ROLLBACK[Rollback]
+    
+    TF[Terraform Apply] --> AWS_ENV
+    DOCKER_P -.deploy manual.-> AWS_ENV
+    
+    style CI fill:#e8f5e9
+    style CD fill:#e3f2fd
+    style Deploy_Targets fill:#fff3e0
+    style FAIL fill:#ffebee
+    style ROLLBACK fill:#ffebee
+    style TF fill:#7b42bc,color:#fff
