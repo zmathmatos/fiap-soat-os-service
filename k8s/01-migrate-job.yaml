@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fiap-soat-tech-challenge-app-migrate
+  labels:
+    app: fiap-soat-tech-challenge-app
+    component: migrate
+  annotations:
+    # Recria Job a cada deploy (Jobs sao imutaveis)
+    deploy/timestamp: "${GITHUB_SHA}"
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: fiap-soat-tech-challenge-app
+        component: migrate
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: ${IMAGE_URI}
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - "npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all || true"
+          envFrom:
+            - configMapRef:
+                name: fiap-soat-tech-challenge-app-config
+            - secretRef:
+                name: fiap-soat-tech-challenge-app-secret
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

@@ -65,22 +65,56 @@ npm run test:coverage
 
 ## CI/CD
 
-O pipeline de CI (`.github/workflows/ci.yml`) executa:
+### CI (`.github/workflows/ci.yml`)
+Roda em `push`/`pull_request` para `master` e `develop`:
 
-1. **lint-and-test**: Testes automatizados com PostgreSQL
-2. **sonarqube**: Análise de qualidade com SonarCloud
-3. **build**: Build da aplicação TypeScript
-4. **docker-build-and-push**: Build e push da imagem Docker para DockerHub
+1. **lint-and-test** — testes com PostgreSQL
+2. **sonarqube** — análise SonarCloud (somente push em `master`/`develop`)
+3. **build** — build TypeScript + upload de artifact
 
-O deploy em Kubernetes é gerenciado pelo repositório [fiap-soat-tech-challenge-infra-k8s](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-k8s).
+### CD (`.github/workflows/cd.yml`)
+Roda via `workflow_dispatch`:
+
+1. **build-and-push** — build da imagem Docker e push para Amazon ECR (tags `<sha>` e `latest`)
+2. **deploy** — `aws eks update-kubeconfig`, aplica ConfigMap/Secret a partir de GitHub Secrets, aplica manifests em `k8s/`, roda o Job de migração e aguarda rollout do Deployment
 
 ### GitHub Secrets necessários
 
 | Secret | Descrição |
 |---|---|
-| `DOCKERHUB_USERNAME` | Usuário do DockerHub |
-| `DOCKERHUB_TOKEN` | Token de acesso do DockerHub |
+| `AWS_ACCESS_KEY_ID` | Credencial AWS Academy |
+| `AWS_SECRET_ACCESS_KEY` | Credencial AWS Academy |
+| `AWS_SESSION_TOKEN` | Token de sessão (obrigatório no AWS Academy) |
+| `AWS_REGION` | Região AWS (ex.: `us-east-1`) |
+| `ECR_REPOSITORY` | Nome do repositório ECR (ex.: `fiap-soat-tech-challenge-app`) |
+| `EKS_CLUSTER_NAME` | Nome do cluster EKS provisionado pelo repo de infra |
+| `DB_HOST` | Endpoint do RDS (output do repo `infra-db`) |
+| `DB_PORT` | Porta do RDS (ex.: `5432`) |
+| `DB_NAME` | Nome do banco |
+| `DB_USER` | Usuário do banco |
+| `DB_PASSWORD` | Senha do banco |
+| `JWT_SECRET` | Chave secreta JWT (produção) |
 | `SONAR_TOKEN` | Token do SonarCloud |
+
+### GitHub Variables (opcional)
+
+| Variável | Default |
+|---|---|
+| `K8S_NAMESPACE` | `fiap-tech-challenge` |
+| `JWT_EXPIRES_IN` | `24h` |
+
+### Manifests Kubernetes (`k8s/`)
+
+| Arquivo | Objeto |
+|---|---|
+| `01-migrate-job.yaml` | `Job` que roda `sequelize-cli db:migrate` + `db:seed:all` |
+| `02-deployment.yaml` | `Deployment` (2 réplicas, probes `/health`, resources, runAsNonRoot) |
+| `03-service.yaml` | `Service` tipo `LoadBalancer` (NLB AWS) |
+| `04-hpa.yaml` | `HorizontalPodAutoscaler` (CPU 70% / mem 80%, 2–6 réplicas) |
+
+`ConfigMap` (`fiap-soat-tech-challenge-app-config`) e `Secret` (`fiap-soat-tech-challenge-app-secret`) são criados no pipeline a partir dos GitHub Secrets — nunca commitados.
+
+A placeholder `${IMAGE_URI}` nos manifests é substituída via `envsubst` no job de deploy.
 
 ## Arquitetura
 
