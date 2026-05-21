@@ -25,7 +25,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
-            - "npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all || true"
+            - "npx sequelize-cli db:migrate && (npx sequelize-cli db:seed:all || true)"
           envFrom:
             - configMapRef:
                 name: fiap-soat-tech-challenge-app-config
