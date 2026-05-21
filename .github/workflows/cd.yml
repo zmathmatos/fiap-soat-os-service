@@ -20,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
-      image_uri: ${{ steps.meta.outputs.image_uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,6 +76,10 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2
+
       - name: Update kubeconfig for EKS
         run: |
           aws eks update-kubeconfig \
@@ -123,7 +126,7 @@ jobs:
 
       - name: Render & apply manifests
         env:
-          IMAGE_URI: ${{ needs.build-and-push.outputs.image_uri }}
+          IMAGE_URI: ${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ needs.build-and-push.outputs.image_tag }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
           for f in k8s/*.yaml; do
