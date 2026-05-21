@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const useSsl = process.env.DB_SSL === "true" || process.env.NODE_ENV === "production";
+
 const sequelize = new Sequelize({
   dialect: "postgres",
   host: process.env.DB_HOST || "localhost",
@@ -11,6 +13,9 @@ const sequelize = new Sequelize({
   username: process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD || "postgres",
   logging: process.env.NODE_ENV === "development",
+  dialectOptions: useSsl
+    ? { ssl: { require: true, rejectUnauthorized: false } }
+    : undefined,
 });
 
 export default sequelize;
