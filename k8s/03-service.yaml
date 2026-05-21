@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fiap-soat-tech-challenge-app
+  labels:
+    app: fiap-soat-tech-challenge-app
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+spec:
+  type: LoadBalancer
+  selector:
+    app: fiap-soat-tech-challenge-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
