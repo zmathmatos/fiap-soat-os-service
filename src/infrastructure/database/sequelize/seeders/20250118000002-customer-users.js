@@ -17,7 +17,7 @@ module.exports = {
       {
         id: uuidv4(),
         name: 'João Silva Santos',
-        document: '12345678901',
+        document: '52998224725',
         email: 'joao.silva@email.com',
         password: await bcrypt.hash('senha123', salt),
         role: 'customer',
@@ -27,7 +27,7 @@ module.exports = {
       {
         id: uuidv4(),
         name: 'Maria Oliveira Costa',
-        document: '98765432101',
+        document: '52998224725',
         email: 'maria.oliveira@email.com',
         password: await bcrypt.hash('senha456', salt),
         role: 'customer',
@@ -37,7 +37,7 @@ module.exports = {
       {
         id: uuidv4(),
         name: 'Pedro Gomes Ferreira',
-        document: '55555555501',
+        document: '11222333000181',
         email: 'pedro.gomes@email.com',
         password: await bcrypt.hash('senha789', salt),
         role: 'customer',
