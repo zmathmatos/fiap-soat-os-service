@@ -6,7 +6,9 @@ export async function initializeDatabase(): Promise<void> {
     console.log("Database connection established successfully.");
 
     // Will sync the database and create tables if they don't existy already
-    await sequelize.sync();
+    if (process.env.NODE_ENV !== "production") {
+      await sequelize.sync();
+    }
     console.log('Database models synchronized.');
   } catch (error) {
     console.error("Unable to connect to the database:", error);
