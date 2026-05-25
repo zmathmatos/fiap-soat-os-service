@@ -34,7 +34,7 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 ### Subir a aplicação
 
 ```bash
-docker-compose up
+npm run docker:dev
 ```
 
 A API estará disponível em `http://localhost:3000`.
@@ -43,7 +43,7 @@ A API estará disponível em `http://localhost:3000`.
 
 ```bash
 # Subir banco de dados
-docker-compose up -d db
+npm run docker:dev
 
 # Rodar todos os testes
 npm test
