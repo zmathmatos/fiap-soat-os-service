@@ -7,6 +7,7 @@ import { sequelize } from "../init";
 import { ServiceOrderStatus } from "../../../../domain/entities/ServiceOrder";
 import Utils from "../utils/Utils";
 import Logger from "../utils/Logger";
+import { newrelic } from "../../../observability/newrelic";
 
 export class ServiceOrderModelPart extends Model {
   declare id: string;
@@ -155,15 +156,22 @@ ServiceModel.belongsToMany(ServiceOrderModel, {
 });
 
 // TODO: move this business rule to the application layer
-ServiceOrderModel.afterCreate(async (serviceOrder, options) => {
-  const date = new Date(Date.now()).toLocaleDateString("pt-BR");
-  const time = new Date(Date.now()).toLocaleTimeString("pt-BR");
-
+ServiceOrderModel.afterCreate(async (serviceOrder, _options) => {
   switch (serviceOrder.status) {
     case ServiceOrderStatus.received:
-      Logger.log(
-        `# --- ${date} ${time} ---- : Nova OS #${serviceOrder.serviceOrderNumber} recebida.`,
-      );
+      Logger.info("order created", {
+        event: "order.created",
+        "order.id": serviceOrder.id,
+        "order.status": "RECEBIDO",
+        service_order_number: serviceOrder.serviceOrderNumber,
+      });
+      newrelic.recordMetric("Custom/ServiceOrder/Created", 1);
+      newrelic.recordCustomEvent("ServiceOrderEvent", {
+        event: "order.created",
+        orderId: serviceOrder.id,
+        status: "RECEBIDO",
+        serviceOrderNumber: serviceOrder.serviceOrderNumber,
+      });
       break;
     default:
       break;
@@ -202,6 +210,13 @@ ServiceOrderModel.beforeUpdate(async (serviceOrder, _options) => {
       try {
         await Utils.updateInventory(serviceOrder);
       } catch (error) {
+        Logger.error("order processing failed: inventory update", {
+          err: error,
+          event: "order.failed",
+          "order.id": serviceOrder.id,
+          service_order_number: serviceOrder.serviceOrderNumber,
+        });
+        newrelic.recordMetric("Custom/ServiceOrder/Failed", 1);
         throw error;
       }
       break;
@@ -212,34 +227,62 @@ ServiceOrderModel.beforeUpdate(async (serviceOrder, _options) => {
 
 // TODO: move this business rule to the application layer
 ServiceOrderModel.afterUpdate(async (serviceOrder, _options) => {
-  const date = new Date(Date.now()).toLocaleDateString("pt-BR");
-  const time = new Date(Date.now()).toLocaleTimeString("pt-BR");
+  const startedAt = serviceOrder.startedServiceAt
+    ? new Date(serviceOrder.startedServiceAt).getTime()
+    : null;
+  const endedAt = serviceOrder.endedServiceAt
+    ? new Date(serviceOrder.endedServiceAt).getTime()
+    : null;
+  const durationMs =
+    startedAt && endedAt ? endedAt - startedAt : undefined;
+
+  const baseFields = {
+    event: "order.processed",
+    "order.id": serviceOrder.id,
+    service_order_number: serviceOrder.serviceOrderNumber,
+    ...(durationMs !== undefined ? { duration_ms: durationMs } : {}),
+  };
+
+  const emit = (status: string) => {
+    Logger.info("order processed", { ...baseFields, "order.status": status });
+    newrelic.recordMetric(`Custom/ServiceOrder/Status/${status}`, 1);
+    if (durationMs !== undefined) {
+      newrelic.recordMetric(`Custom/ServiceOrder/Duration/${status}`, durationMs);
+    }
+    newrelic.recordCustomEvent("ServiceOrderEvent", {
+      event: "order.processed",
+      orderId: serviceOrder.id,
+      status,
+      serviceOrderNumber: serviceOrder.serviceOrderNumber,
+      ...(durationMs !== undefined ? { durationMs } : {}),
+    });
+  };
 
   switch (serviceOrder.status) {
     case ServiceOrderStatus.inDiagnostic:
-      Logger.log(
-        `# --- ${date} ${time} ---- : OS #${serviceOrder.serviceOrderNumber} em diagnóstico.`,
-      );
+      emit("DIAGNOSTICO");
       break;
     case ServiceOrderStatus.awaitingApproval:
       if (process.env.NODE_ENV !== "test") {
-        Utils.generateQuotation(serviceOrder.serviceOrderNumber);
+        try {
+          Utils.generateQuotation(serviceOrder.serviceOrderNumber);
+        } catch (error) {
+          Logger.error("quotation generation failed", {
+            err: error,
+            service_order_number: serviceOrder.serviceOrderNumber,
+          });
+        }
       }
+      emit("AGUARDANDO_APROVACAO");
       break;
     case ServiceOrderStatus.inExecution:
-      Logger.log(
-        `# --- ${date} ${time} ---- : OS #${serviceOrder.serviceOrderNumber} em serviço.`,
-      );
+      emit("EXECUCAO");
       break;
     case ServiceOrderStatus.completed:
-      Logger.log(
-        `# --- ${date} ${time} ---- : OS #${serviceOrder.serviceOrderNumber} foi concluída.`,
-      );
+      emit("FINALIZACAO");
       break;
     case ServiceOrderStatus.delivered:
-      Logger.log(
-        `# --- ${date} ${time} ---- : OS #${serviceOrder.serviceOrderNumber} foi entregue ao cliente.`,
-      );
+      emit("ENTREGUE");
       break;
     default:
       break;

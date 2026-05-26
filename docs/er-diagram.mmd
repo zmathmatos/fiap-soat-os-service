@@ -1,0 +1,77 @@
+erDiagram
+    USERS ||--o{ SERVICE_ORDERS : owns
+    VEHICLES ||--o{ SERVICE_ORDERS : "is serviced in"
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_PARTS : has
+    PARTS ||--o{ SERVICE_ORDER_PARTS : "consumed by"
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_SERVICES : has
+    SERVICES ||--o{ SERVICE_ORDER_SERVICES : "applied in"
+
+    USERS {
+        uuid id PK
+        string name
+        string document UK "CPF"
+        string email UK
+        string password "bcrypt hash"
+        string role "admin|customer (indexed)"
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    VEHICLES {
+        uuid id PK
+        string licensePlate UK
+        string brand
+        string model
+        integer year
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    PARTS {
+        uuid id PK
+        string name
+        string partNumber UK
+        string brand
+        decimal price
+        integer stockQuantity
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SERVICES {
+        uuid id PK
+        string name
+        string serviceCode UK
+        decimal price
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SERVICE_ORDERS {
+        uuid id PK
+        integer serviceOrderNumber UK
+        string status "Recebido|EmDiagnostico|AguardandoAprovacao|EmExecucao|Finalizada|Entregue"
+        uuid userId FK
+        uuid vehicleId FK
+        timestamp startedServiceAt "nullable"
+        timestamp endedServiceAt "nullable"
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SERVICE_ORDER_PARTS {
+        uuid id PK
+        uuid serviceOrderId FK
+        uuid partId FK
+        integer quantity
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SERVICE_ORDER_SERVICES {
+        uuid id PK
+        uuid serviceOrderId FK
+        uuid serviceId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
