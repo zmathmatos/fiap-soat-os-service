@@ -1,31 +1,20 @@
-# FIAP SOAT Tech Challenge — App
+# FIAP SOAT Tech Challenge - App
 
 API REST para gerenciamento de ordens de serviço em oficinas mecânicas.
+Implementada com Node.js, Express, TypeScript, PostgreSQL e Sequelize.
 
-## Visão Geral
+Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 
-Backend da plataforma FIAP SOAT Tech Challenge, responsável por expor os endpoints de negócio consumidos pelo frontend e pelo API Gateway.
+| Repositório | Conteúdo |
+|---|---|
+| **[fiap-soat-tech-challenge-app](https://github.com/zmathmatos/fiap-soat-tech-challenge-app)** | ← Este repo — Código da aplicação |
+| [fiap-soat-tech-challenge-lambda](https://github.com/zmathmatos/fiap-soat-tech-challenge-lambda) | Lambda de autenticação via CPF (API Gateway + AWS Lambda) |
+| [fiap-soat-tech-challenge-infra-k8s](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-k8s) | Infraestrutura Kubernetes (VPC, EKS) via Terraform |
+| [fiap-soat-tech-challenge-infra-db](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | Infraestrutura do banco de dados (RDS PostgreSQL) via Terraform |
 
-- **Stack**: TypeScript 5.9 + Express 5.2 + Sequelize 6.37 + PostgreSQL 14/15
-- **Arquitetura**: Clean Architecture com 4 camadas (`domain`, `application`, `infrastructure`, `interface`)
-- **Deploy**: Docker → Amazon ECR → Amazon EKS (Kubernetes)
+## Desenvolvimento local
 
-## Arquitetura — 4 Repositórios
-
-| Repositório | Responsabilidade | Deploy |
-|---|---|---|
-| [`fiap-soat-tech-challenge-infra-k8s`](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-k8s) | VPC + EKS + Namespace + Observability (New Relic) | Terraform |
-| [`fiap-soat-tech-challenge-infra-db`](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | RDS PostgreSQL | Terraform |
-| [`fiap-soat-tech-challenge-lambda`](https://github.com/zmathmatos/fiap-soat-tech-challenge-lambda) | API Gateway HTTP v2 + Lambda Authorizer (auth via CPF) | Terraform |
-| [`fiap-soat-tech-challenge-app`](https://github.com/zmathmatos/fiap-soat-tech-challenge-app) | **← Este repo** — Backend Express | Docker + kubectl |
-
-**Ordem de deploy obrigatória**: `infra-k8s` → `infra-db` → `app` → `lambda`
-
-## Pré-requisitos
-
-- **Node.js 22+**
-- **Docker + Docker Compose** (recomendado para desenvolvimento local)
-- **PostgreSQL 14+** (via Docker Compose — veja abaixo)
+### Pré-requisitos
 
 ## Desenvolvimento local
 
@@ -81,167 +70,83 @@ npm run test:coverage
 
 ## Variáveis de Ambiente
 
-| Variável | Default | Descrição |
-|---|---|---|
-| `DB_HOST` | `localhost` | Host do PostgreSQL |
-| `DB_PORT` | `5432` | Porta do PostgreSQL |
-| `DB_NAME` | `fiap_soat` | Nome do database |
-| `DB_USER` | `postgres` | Usuário do PostgreSQL |
-| `DB_PASSWORD` | `postgres` | Senha do PostgreSQL |
-| `DB_SSL` | `false` | TLS na conexão (`true` em RDS/produção, `false` local) |
-| `JWT_SECRET` | — | Segredo HMAC para tokens JWT (obrigatório) |
-| `JWT_EXPIRES_IN` | `24h` | TTL do token (`24h`, `7d`, `3600s`) |
-| `APP_PORT` | `3000` | Porta HTTP do servidor |
-| `NODE_ENV` | `development` | `development` / `production` / `test` |
-
-## Endpoints
-
-| Método | Path | Auth | Descrição |
-|---|---|---|---|
-| `POST` | `/auth` | Público | Login com e-mail + senha (retorna JWT) |
-| `GET` | `/health` | Público | Health check da aplicação |
-| `GET` | `/admin/users` | Admin | Lista usuários |
-| `POST` | `/admin/users` | Admin | Cria usuário |
-| `PUT` | `/admin/users/:id` | Admin | Atualiza usuário |
-| `DELETE` | `/admin/users/:id` | Admin | Remove usuário |
-| `GET` | `/admin/vehicles` | Admin | Lista veículos |
-| `POST` | `/admin/vehicles` | Admin | Cadastra veículo |
-| `PUT` | `/admin/vehicles/:id` | Admin | Atualiza veículo |
-| `DELETE` | `/admin/vehicles/:id` | Admin | Remove veículo |
-| `GET` | `/admin/parts` | Admin | Lista peças |
-| `POST` | `/admin/parts` | Admin | Cadastra peça |
-| `PUT` | `/admin/parts/:id` | Admin | Atualiza peça |
-| `DELETE` | `/admin/parts/:id` | Admin | Remove peça |
-| `GET` | `/admin/services` | Admin | Lista serviços |
-| `POST` | `/admin/services` | Admin | Cadastra serviço |
-| `PUT` | `/admin/services/:id` | Admin | Atualiza serviço |
-| `DELETE` | `/admin/services/:id` | Admin | Remove serviço |
-| `GET` | `/admin/service-orders` | Admin | Lista ordens de serviço |
-| `POST` | `/admin/service-orders` | Admin | Cria ordem de serviço |
-| `PUT` | `/admin/service-orders/:id` | Admin | Atualiza ordem |
-| `DELETE` | `/admin/service-orders/:id` | Admin | Remove ordem |
-| `GET` | `/customer/service-orders` | Customer | Ordens do cliente autenticado |
-
-> **Nota**: A autenticação é feita via header `x-document` para todas as rotas `/customer/*` via (CPF) no API Gateway. Todos os outros endpoints continuam disponíveeis para uso direto sem autenticação, mas via API Gateway.
+- **Admin**: `admin@techchallenge.com` / `admin123`
+- **Customer**: `joao.silva@email.com` / `senha123`
 
 ## CI/CD
 
-### CI — `.github/workflows/ci.yml`
+### CI (`.github/workflows/ci.yml`)
+Roda em `push`/`pull_request` para `master` e `develop`:
 
-**Trigger**: push e pull_request em `master` e `develop`.
+1. **lint-and-test** — testes com PostgreSQL
+2. **sonarqube** — análise SonarCloud (somente push em `master`/`develop`)
+3. **build** — build TypeScript + upload de artifact
 
-| Job | O que faz |
-|---|---|
-| `lint-and-test` | Instala dependências e roda `npm test` com PostgreSQL 15 de serviço |
-| `sonarqube` | Gera cobertura (`npm run test:coverage`) e envia para SonarCloud — roda em push **e** PRs |
-| `build` | Compila TypeScript (`npm run build`) e faz upload do artifact `dist/` |
+### CD (`.github/workflows/cd.yml`)
+Roda via `workflow_dispatch`:
 
-**Secrets necessários**:
+1. **build-and-push** — build da imagem Docker e push para Amazon ECR (tags `<sha>` e `latest`)
+2. **deploy** — `aws eks update-kubeconfig`, aplica ConfigMap/Secret a partir de GitHub Secrets, aplica manifests em `k8s/`, roda o Job de migração e aguarda rollout do Deployment
 
-| Secret | Descrição |
-|---|---|
-| `SONAR_TOKEN` | Token de autenticação do SonarCloud |
-
-### CD — `.github/workflows/cd.yml`
-
-**Trigger**: `workflow_dispatch` (manual via GitHub Actions).
-
-**Fluxo**:
-1. Checkout do código
-2. Configura credenciais AWS
-3. Login no Amazon ECR
-4. `docker build` + `docker push` com tags `<sha7>` e `latest`
-5. `aws eks update-kubeconfig` para o cluster EKS
-6. Cria namespace se não existir
-7. Aplica `ConfigMap` com: `DB_HOST`, `DB_PORT`, `DB_NAME`, `APP_PORT=3000`, `NODE_ENV=production`, `JWT_EXPIRES_IN`, `DB_SSL=true`
-8. Aplica `Secret` com: `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`
-9. Deleta Job de migration anterior (Jobs Kubernetes são imutáveis)
-10. Aplica todos os manifests `k8s/*.yaml` via `envsubst` (substitui `${IMAGE_URI}` e `${GITHUB_SHA}`)
-11. Aguarda conclusão do Job migrate (timeout 300s)
-12. Aguarda rollout do Deployment (timeout 300s)
-
-**Secrets necessários**:
+### GitHub Secrets necessários
 
 | Secret | Descrição |
 |---|---|
-| `AWS_ACCESS_KEY_ID` | Access Key ID do AWS Academy (sessão temporária) |
-| `AWS_SECRET_ACCESS_KEY` | Secret Access Key do AWS Academy |
-| `AWS_SESSION_TOKEN` | Session Token obrigatório no AWS Academy (credenciais temporárias) |
+| `AWS_ACCESS_KEY_ID` | Credencial AWS Academy |
+| `AWS_SECRET_ACCESS_KEY` | Credencial AWS Academy |
+| `AWS_SESSION_TOKEN` | Token de sessão (obrigatório no AWS Academy) |
 | `AWS_REGION` | Região AWS (ex.: `us-east-1`) |
 | `ECR_REPOSITORY` | Nome do repositório ECR (ex.: `fiap-soat-tech-challenge-app`) |
-| `EKS_CLUSTER_NAME` | Nome do cluster EKS (ex.: `fiap-soat-dev-eks`) |
+| `EKS_CLUSTER_NAME` | Nome do cluster EKS provisionado pelo repo de infra |
 | `DB_HOST` | Endpoint do RDS (output do repo `infra-db`) |
 | `DB_PORT` | Porta do RDS (ex.: `5432`) |
-| `DB_NAME` | Nome do banco de dados |
-| `DB_USER` | Usuário master do RDS (vai para o K8s Secret) |
-| `DB_PASSWORD` | Senha master do RDS (vai para o K8s Secret) |
-| `JWT_SECRET` | Segredo HMAC para assinar tokens JWT (vai para o K8s Secret) |
-| `SONAR_TOKEN` | Token do SonarCloud (usado apenas no CI) |
+| `DB_NAME` | Nome do banco |
+| `DB_USER` | Usuário do banco |
+| `DB_PASSWORD` | Senha do banco |
+| `JWT_SECRET` | Chave secreta JWT (produção) |
+| `SONAR_TOKEN` | Token do SonarCloud |
 
-**Variáveis (GitHub Variables)**:
+### GitHub Variables (opcional)
 
-| Variável | Default | Descrição |
-|---|---|---|
-| `K8S_NAMESPACE` | `fiap-tech-challenge` | Namespace Kubernetes onde a aplicação é deployada |
-| `JWT_EXPIRES_IN` | `24h` | TTL do token JWT injetado no ConfigMap |
+| Variável | Default |
+|---|---|
+| `K8S_NAMESPACE` | `fiap-tech-challenge` |
+| `JWT_EXPIRES_IN` | `24h` |
 
-## Manifests Kubernetes (`k8s/`)
+### Manifests Kubernetes (`k8s/`)
 
-| Arquivo | Tipo | Descrição |
-|---|---|---|
-| `01-migrate-job.yaml` | `Job` | Roda `sequelize-cli db:migrate && db:seed:all` antes do app subir. `backoffLimit: 3`, `ttlSecondsAfterFinished: 600`. |
-| `02-deployment.yaml` | `Deployment` | 2 réplicas, RollingUpdate (`maxSurge: 1`, `maxUnavailable: 0`). Probes readiness/liveness em `/health`. Resources: requests (150m CPU, 256Mi mem), limits (750m, 768Mi). Security: `runAsNonRoot`, `runAsUser: 1000`, drop ALL capabilities. |
-| `03-service.yaml` | `Service` | Tipo `LoadBalancer` com annotation NLB AWS (`nlb`, `internet-facing`, target-type `ip`). Porta 80 → container 3000. |
-| `04-hpa.yaml` | `HorizontalPodAutoscaler` | Escala 2–6 réplicas com targets CPU 70% e memória 80%. Janela de scale-down 120s, scale-up 30s. |
+| Arquivo | Objeto |
+|---|---|
+| `01-migrate-job.yaml` | `Job` que roda `sequelize-cli db:migrate` + `db:seed:all` |
+| `02-deployment.yaml` | `Deployment` (2 réplicas, probes `/health`, resources, runAsNonRoot) |
+| `03-service.yaml` | `Service` tipo `LoadBalancer` (NLB AWS) |
+| `04-hpa.yaml` | `HorizontalPodAutoscaler` (CPU 70% / mem 80%, 2–6 réplicas) |
 
-ConfigMap (`fiap-soat-tech-challenge-app-config`) e Secret (`fiap-soat-tech-challenge-app-secret`) são criados no pipeline a partir dos GitHub Secrets — **nunca commitados**.
+`ConfigMap` (`fiap-soat-tech-challenge-app-config`) e `Secret` (`fiap-soat-tech-challenge-app-secret`) são criados no pipeline a partir dos GitHub Secrets — nunca commitados.
 
-## Como Deployar na AWS
+A placeholder `${IMAGE_URI}` nos manifests é substituída via `envsubst` no job de deploy.
 
-### Via GitHub Actions (recomendado)
+## Arquitetura
 
-Vá em **Actions → CD - Build, Push to ECR and Deploy to EKS → Run workflow**.
+O projeto segue Clean Architecture com 4 camadas:
 
-## Como Verificar o Deploy
-
-```bash
-# Ver todos os recursos no namespace
-kubectl get all -n fiap-tech-challenge
-
-# Logs da aplicação (últimas 50 linhas)
-kubectl logs -l app=fiap-soat-tech-challenge-app -n fiap-tech-challenge --tail=50
-
-# DNS do NLB (coluna EXTERNAL-IP)
-kubectl get svc -n fiap-tech-challenge
-
-# Health check via NLB
-curl http://<NLB-DNS>/health
+```
+src/
+├── domain/          # Entidades e interfaces de repositório
+├── application/     # Use cases e serviços de aplicação
+├── infrastructure/  # Banco de dados (Sequelize), web (Express), repositórios
+└── interface/       # Controllers, middleware, presenters
 ```
 
-## Como Destruir (Poupar Créditos)
+### Endpoints
 
-```bash
-# Remover todos os recursos K8s deste app
-kubectl delete -f k8s/ -n fiap-tech-challenge --ignore-not-found
-
-# Remover imagens ECR (evita custo de storage)
-aws ecr batch-delete-image \
-  --repository-name fiap-soat-tech-challenge-app \
-  --image-ids "$(aws ecr list-images \
-    --repository-name fiap-soat-tech-challenge-app \
-    --query 'imageIds[*]' --output json)" \
-  --region us-east-1
-```
-
-> **Importante**: os recursos K8s deste app têm custo baixo isoladamente (consumo de nós EKS). Os itens caros são EKS control plane (~$2,40/dia), RDS e API Gateway — destrua via os READMEs dos repos `infra-k8s` e `infra-db` quando não estiver usando.
-
-## Troubleshooting
-
-| Sintoma | Causa provável | Solução |
-|---|---|---|
-| `self-signed certificate in certificate chain` | RDS exige SSL e `DB_SSL=false` | Setar `DB_SSL=true` no ConfigMap/env |
-| Job migrate trava ou falha | Credenciais erradas ou DB inacessível | `kubectl logs job/fiap-soat-tech-challenge-app-migrate -n fiap-tech-challenge` |
-| Pod `CrashLoopBackOff` | Env var obrigatória ausente | `kubectl describe pod <nome> -n fiap-tech-challenge` + verificar Secret/ConfigMap |
-| HPA mostra `<unknown>/70%` | `metrics-server` não instalado no cluster | Instalar via `kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml` |
-| `ImagePullBackOff` | ECR login expirado ou IAM sem permissão | Verificar role do node group e credenciais AWS |
-| Testes de integração falham localmente | PostgreSQL não está rodando | `docker compose up -d db` e aguardar `service_healthy` |
+| Método | Path | Descrição | Auth |
+|---|---|---|---|
+| `POST` | `/auth` | Autenticação | — |
+| `GET` | `/health` | Health check | — |
+| `GET/POST/PUT/DELETE` | `/admin/users` | CRUD usuários | Admin |
+| `GET/POST/PUT/DELETE` | `/admin/vehicles` | CRUD veículos | Admin |
+| `GET/POST/PUT/DELETE` | `/admin/parts` | CRUD peças | Admin |
+| `GET/POST/PUT/DELETE` | `/admin/services` | CRUD serviços | Admin |
+| `GET/POST/PUT/DELETE` | `/admin/service-orders` | CRUD ordens de serviço | Admin |
+| `GET` | `/customer/service-orders` | Ordens do cliente | Customer |

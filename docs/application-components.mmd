@@ -3,54 +3,44 @@ config:
   layout: dagre
 ---
 flowchart TB
-    subgraph Dominio["Camada de Domínio"]
-        subgraph Entidades["Entidades de Negócio"]
-            USER["Usuário"]
-            VEHICLE["Veículo"]
-            SERVICE["Serviço"]
-            PART["Peça"]
-            SO["Ordem de Serviço"]
-            DOC["Documento"]
-        end
-        REPO_INT["Contratos de Repositório\n(interfaces)"]
+    subgraph Entities["Entities"]
+        USER["User"]
+        VEHICLE["Vehicle"]
+        SERVICE["Service"]
+        PART["Part"]
+        SO["ServiceOrder"]
+        DOC["Document"]
+    end
+    subgraph Domain["Domain Layer"]
+        REPO_INT["Repository Interfaces"]
+        Entities
+    end
+    subgraph Application["Application Layer"]
+        UC["Use Cases"]
+        AUTH["Auth Service"]
+    end
+    subgraph Interface["Interface Layer"]
+        CTRL["Controllers"]
+        MW["Middleware"]
+        PRES["Presenters"]
+    end
+    subgraph ROUTERS["Routers"]
+        ROUTE_ADM["Admin routes"]
+        ROUTE_CUST["Customer routes"]
+        ROUTE_HEALTH["Health"]
+    end
+    subgraph IWeb["Web"]
+        WEB_CTRL["Controllers"]
+        ROUTERS["Routers"]
+    end
+    subgraph Infrastructure["Infrastructure Layer"]
+        REPO_IMPL["Repository Implementations"]
+        DB["Sequelize ORM"]
+        POSTGRES[("PostgreSQL")]
+        IWeb
     end
 
-    subgraph Aplicacao["Camada de Aplicação"]
-        UC["Casos de Uso\n(regras de negócio)"]
-        AUTH_SVC["Serviço de Autenticação\n(validação JWT)"]
-    end
-
-    subgraph Interface["Camada de Interface"]
-        CTRL["Controladores"]
-        MW["Middlewares\n(auth, admin)"]
-        PRES["Apresentadores\n(formatação de resposta)"]
-    end
-
-    subgraph Infraestrutura["Camada de Infraestrutura"]
-        subgraph Web["Servidor Web (Express)"]
-            ROUTE_HEALTH["Rota: /health"]
-            ROUTE_AUTH["Rota: /auth"]
-            ROUTE_ADM["Rotas Administrativas\n/admin/users, /vehicles,\n/parts, /services, /service-orders"]
-            ROUTE_CUST["Rotas do Cliente\n/customer/service-orders"]
-        end
-        REPO_IMPL["Implementações de Repositório"]
-        ORM["Mapeamento Objeto-Relacional\n(Sequelize)"]
-        POSTGRES[("Banco de Dados\nPostgreSQL")]
-    end
-
-    Entidades --> REPO_INT
-    REPO_INT --> UC
-    UC --> AUTH_SVC
-    UC --> CTRL
-    CTRL --> MW
-    CTRL --> PRES
-    Web --> CTRL
-    REPO_IMPL --> ORM
-    ORM --> POSTGRES
-    UC --> REPO_IMPL
-
-    style Dominio fill:#e1f5fe
-    style Aplicacao fill:#fff3e0
+    style Domain fill:#e1f5fe
+    style Application fill:#fff3e0
+    style Infrastructure fill:#f3e5f5
     style Interface fill:#e8f5e9
-    style Infraestrutura fill:#f3e5f5
-    style Web fill:#ede7f6
