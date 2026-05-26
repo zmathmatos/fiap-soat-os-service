@@ -1,0 +1,30 @@
+flowchart TB
+    Cliente["Cliente\n(navegador ou app)"]
+    APIGW["API Gateway\n(ponto de entrada + autenticação via Lambda)"]
+    LAMBDA["Autenticação\n(valida CPF no banco, gera token JWT)"]
+    NLB["Balanceador de Carga\n(distribui requisições para o cluster)"]
+
+    subgraph EKS["Cluster Kubernetes — AWS EKS"]
+      subgraph NS["Namespace: fiap-tech-challenge"]
+        SVC["Serviço Kubernetes\n(roteamento interno)"]
+        DEPLOY["Aplicação\n(2 a 6 instâncias com escalonamento automático)"]
+        JOB["Migração do Banco\n(atualiza estrutura a cada deploy)"]
+        CM["Configurações\n(endereço do banco, porta, ambiente)"]
+        SEC["Credenciais\n(usuário/senha do banco, chave JWT)"]
+      end
+    end
+
+    RDS[("Banco de Dados\n(RDS PostgreSQL — gerenciado pela AWS)")]
+
+    Cliente -->|"1. requisição HTTP"| APIGW
+    APIGW -->|"2. verifica CPF / valida JWT"| LAMBDA
+    LAMBDA -->|"3. token válido"| APIGW
+    APIGW -->|"4. via VPC Link"| NLB
+    NLB --> SVC
+    SVC --> DEPLOY
+    JOB -.->|"executa antes do app iniciar"| RDS
+    DEPLOY --> RDS
+    CM -.->|"injeta configurações"| DEPLOY
+    SEC -.->|"injeta credenciais"| DEPLOY
+    CM -.-> JOB
+    SEC -.-> JOB

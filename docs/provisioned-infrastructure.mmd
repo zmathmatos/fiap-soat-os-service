@@ -1,49 +1,48 @@
 flowchart TB
-    subgraph Local["💻 Ambiente Local"]
-        DC[Docker Compose]
-        APP_C[Container App<br/>Node.js]
-        PG_C[Container PostgreSQL]
-        
-        DC --> APP_C & PG_C
-        APP_C --> PG_C
+    subgraph Repos["4 Repositórios — cada um com seu pipeline CI/CD"]
+        REPO_APP["fiap-soat-tech-challenge-app\n(código da aplicação)"]
+        REPO_LAMBDA["fiap-soat-tech-challenge-lambda\n(função de autenticação)"]
+        REPO_K8S["fiap-soat-tech-challenge-infra-k8s\n(infraestrutura Kubernetes)"]
+        REPO_DB["fiap-soat-tech-challenge-infra-db\n(infraestrutura do banco)"]
     end
-    
-    subgraph Kind["☸️ Kubernetes Local - Kind"]
-        K_CLUSTER[Kind Cluster]
-        K_NS[Namespace: fiap-soat]
-        K_PG[PostgreSQL Deployment]
-        K_APP[App Deployment<br/>2 Replicas]
-        K_SVC[Services]
-        K_HPA[HPA Autoscaling]
-        
-        K_CLUSTER --> K_NS
-        K_NS --> K_PG & K_APP
-        K_NS --> K_SVC & K_HPA
-        K_APP --> K_PG
-    end
-    
-    subgraph AWS["☁️ AWS - Terraform"]
-        VPC[VPC + Subnets]
-        EKS[EKS Cluster]
-        RDS[RDS PostgreSQL]
-        
-        subgraph K8s_AWS["Kubernetes no EKS"]
-            AWS_NS[Namespace: fiap-soat]
-            AWS_APP[App Pods]
-            AWS_SVC[Services + Ingress]
-            AWS_HPA[HPA]
+
+    subgraph AWS["Infraestrutura provisionada na AWS (Terraform)"]
+        subgraph Rede["Rede (VPC)"]
+            APIGW["API Gateway\n(entrada pública + autorização)"]
+            NLB["Balanceador de Carga\n(NLB — direciona para o cluster)"]
         end
-        
-        VPC --> EKS & RDS
-        EKS --> AWS_NS
-        AWS_NS --> AWS_APP & AWS_SVC & AWS_HPA
-        AWS_APP --> RDS
+
+        subgraph Computacao["Computação"]
+            LAMBDA_FN["Função Lambda\n(valida CPF, emite JWT)"]
+            subgraph EKS["Cluster EKS"]
+                PODS["Aplicação\n(2 a 6 instâncias)"]
+                ECR_IMG["Imagem Docker\n(Amazon ECR)"]
+            end
+        end
+
+        subgraph Dados["Dados"]
+            RDS[("Banco de Dados\n(RDS PostgreSQL)")]
+        end
+
+        subgraph Observabilidade["Observabilidade (New Relic)"]
+            NR["Agente New Relic\nMétricas · Logs · Alertas"]
+        end
     end
-    
-    DOCKER[DockerHub<br/>fiap-web:latest] -.image.-> APP_C & K_APP & AWS_APP
-    
-    style Local fill:#e3f2fd
-    style Kind fill:#e8eaf6
+
+    REPO_APP -->|"publica imagem"| ECR_IMG
+    REPO_LAMBDA -->|"deploy da função"| LAMBDA_FN
+    REPO_K8S -->|"terraform apply"| EKS
+    REPO_DB -->|"terraform apply"| RDS
+
+    APIGW -->|"requisição autorizada via VPC Link"| NLB
+    APIGW -->|"valida token"| LAMBDA_FN
+    NLB --> PODS
+    PODS --> RDS
+    PODS --> NR
+
+    style Repos fill:#e8f5e9
     style AWS fill:#fff8e1
-    style K8s_AWS fill:#f3e5f5
-    style DOCKER fill:#0db7ed,color:#fff
+    style Rede fill:#e3f2fd
+    style Computacao fill:#f3e5f5
+    style Dados fill:#fce4ec
+    style Observabilidade fill:#e0f2f1
