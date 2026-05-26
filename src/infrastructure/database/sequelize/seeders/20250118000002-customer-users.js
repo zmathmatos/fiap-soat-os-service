@@ -27,7 +27,7 @@ module.exports = {
       {
         id: uuidv4(),
         name: 'Maria Oliveira Costa',
-        document: '52998224725',
+        document: '48321907504',
         email: 'maria.oliveira@email.com',
         password: await bcrypt.hash('senha456', salt),
         role: 'customer',
