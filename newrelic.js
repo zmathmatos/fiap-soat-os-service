@@ -8,6 +8,7 @@ exports.config = {
   license_key: process.env.NEW_RELIC_LICENSE_KEY || '',
   logging: {
     level: process.env.NEW_RELIC_LOG_LEVEL || 'info',
+    filepath: 'stdout',
   },
   allow_all_headers: true,
   attributes: {
