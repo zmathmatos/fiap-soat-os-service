@@ -27,58 +27,57 @@ Backend da plataforma FIAP SOAT Tech Challenge, responsável por expor os endpoi
 - **Docker + Docker Compose** (recomendado para desenvolvimento local)
 - **PostgreSQL 14+** (via Docker Compose — veja abaixo)
 
-## Desenvolvimento Local
+## Desenvolvimento local
 
-### 1. Configurar variáveis de ambiente
+### Pré-requisitos
+
+- Docker e Docker Compose
+
+### Variáveis de ambiente
+
+| Variável | Descrição | Exemplo |
+|---|---|---|
+| `DB_HOST` | Host do PostgreSQL | `localhost` ou `postgres-service` |
+| `DB_PORT` | Porta do PostgreSQL | `5432` |
+| `DB_NAME` | Nome do banco | `fiap_soat` |
+| `DB_USER` | Usuário do banco | `postgres` |
+| `DB_PASSWORD` | Senha do banco | `postgres` |
+| `APP_PORT` | Porta da aplicação | `3000` |
+| `JWT_SECRET` | Chave secreta JWT | `your-super-secret-key` |
+| `JWT_EXPIRES_IN` | Expiração do token | `24h` |
+
+### Subir a aplicação
 
 ```bash
-cp .env.sample .env
-# Edite .env se necessário (defaults já funcionam com docker compose)
+npm run docker:dev
 ```
 
-### 2. Subir com Docker Compose (recomendado)
+A API estará disponível em `http://localhost:3000`.
+
+### Rodar os testes
 
 ```bash
-# Sobe PostgreSQL + app com hot-reload
-docker compose up -d
+# Subir banco de dados
+npm run docker:dev
 
-# Apenas o banco (para rodar app local)
-docker compose up -d db
-```
-
-A API ficará disponível em `http://localhost:3000`.
-
-### 3. Rodar sem Docker (opcional)
-
-```bash
-npm install
-npm run dev      # hot-reload via nodemon
-npm run build    # compila TypeScript → dist/
-npm start        # roda a build compilada
-```
-
-## Testes
-
-```bash
-# Todos os testes
+# Rodar todos os testes
 npm test
 
-# Apenas unitários (não requer banco)
+# Apenas testes unitários
 npm run test:unit
 
-# Apenas integração (requer PostgreSQL rodando)
+# Apenas testes de integração
 npm run test:integration
 
-# Com relatório de cobertura
+# Com cobertura
 npm run test:coverage
 ```
 
-### Credenciais de Teste
+### Credenciais de teste
 
-| Perfil | E-mail | Senha |
-|---|---|---|
-| Admin | `admin@techchallenge.com` | `admin123` |
-| Customer | `joao.silva@email.com` | `senha123` |
+- **Admin**: `admin@techchallenge.com` / `admin123`
+- **Customer**: `joao.silva@email.com` / `senha123`
+
 
 ## Variáveis de Ambiente
 
