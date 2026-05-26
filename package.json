@@ -46,7 +46,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
-    "newrelic": "^12.5.0",
+    "newrelic": "^14.0.0",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "pino": "^9.5.0",
@@ -75,7 +75,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
-
   "overrides": {
     "glob": "^9.0.0"
   }
