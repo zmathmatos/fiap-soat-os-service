@@ -19,7 +19,7 @@
     "prebuild": "rimraf dist",
     "build": "etsc -p tsconfig.build.json",
     "compile": "npx tsc",
-    "start": "node ./dist/server.js",
+    "start": "node -r newrelic ./dist/server.js",
     "test": "jest --runInBand --silent",
     "test:unit": "jest --silent --testPathIgnorePatterns \"\\.integration\\.\"",
     "test:integration": "jest --runInBand --silent --testPathPattern=\\.integration\\.test.ts$",
