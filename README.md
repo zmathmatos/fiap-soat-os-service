@@ -123,7 +123,7 @@ npm run test:coverage
 | `DELETE` | `/admin/service-orders/:id` | Admin | Remove ordem |
 | `GET` | `/customer/service-orders` | Customer | Ordens do cliente autenticado |
 
-> **Nota**: Com o Lambda Authorizer ativo em produção, a autenticação é feita via header `x-document` (CPF) no API Gateway — o endpoint `POST /auth` continua disponível para uso direto (sem API Gateway).
+> **Nota**: A autenticação é feita via header `x-document` para todas as rotas `/customer/*` via (CPF) no API Gateway. O endpoint `POST /auth` continua disponível para uso direto sem autenticação, mas via API Gateway.
 
 ## CI/CD
 
@@ -202,63 +202,6 @@ ConfigMap (`fiap-soat-tech-challenge-app-config`) e Secret (`fiap-soat-tech-chal
 ### Via GitHub Actions (recomendado)
 
 Vá em **Actions → CD - Build, Push to ECR and Deploy to EKS → Run workflow**.
-
-### Manual (linha de comando)
-
-```bash
-# Variáveis
-REGION=us-east-1
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-ECR_REPO=fiap-soat-tech-challenge-app
-CLUSTER=fiap-soat-dev-eks
-NAMESPACE=fiap-tech-challenge
-SHA7=$(git rev-parse --short=7 HEAD)
-IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPO:$SHA7
-
-# 1. Login ECR
-aws ecr get-login-password --region $REGION \
-  | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
-
-# 2. Build e push
-docker build -t $IMAGE_URI .
-docker push $IMAGE_URI
-docker tag $IMAGE_URI $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPO:latest
-docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPO:latest
-
-# 3. Configurar kubeconfig
-aws eks update-kubeconfig --name $CLUSTER --region $REGION
-
-# 4. Namespace
-kubectl get ns $NAMESPACE || kubectl create namespace $NAMESPACE
-
-# 5. ConfigMap e Secret (ajuste os valores)
-kubectl -n $NAMESPACE create configmap fiap-soat-tech-challenge-app-config \
-  --from-literal=DB_HOST=<RDS_ENDPOINT> \
-  --from-literal=DB_PORT=5432 \
-  --from-literal=DB_NAME=<DB_NAME> \
-  --from-literal=APP_PORT=3000 \
-  --from-literal=NODE_ENV=production \
-  --from-literal=JWT_EXPIRES_IN=24h \
-  --from-literal=DB_SSL=true \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-kubectl -n $NAMESPACE create secret generic fiap-soat-tech-challenge-app-secret \
-  --from-literal=DB_USER=<DB_USER> \
-  --from-literal=DB_PASSWORD=<DB_PASSWORD> \
-  --from-literal=JWT_SECRET=<JWT_SECRET> \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-# 6. Aplicar manifests
-export IMAGE_URI GITHUB_SHA=$(git rev-parse HEAD)
-for f in k8s/*.yaml; do
-  envsubst '${IMAGE_URI} ${GITHUB_SHA}' < "$f" | kubectl -n $NAMESPACE apply -f -
-done
-
-# 7. Aguardar migration e rollout
-kubectl -n $NAMESPACE wait --for=condition=complete \
-  job/fiap-soat-tech-challenge-app-migrate --timeout=300s
-kubectl -n $NAMESPACE rollout status deployment/fiap-soat-tech-challenge-app --timeout=300s
-```
 
 ## Como Verificar o Deploy
 
