@@ -164,17 +164,10 @@ SINCE 7 days ago
 
 | Nome | Tipo | Onde emitido | Atributos |
 |---|---|---|---|
-<<<<<<< HEAD
 | `ServiceOrderEvent` | Custom event | `ServiceOrderModel.afterCreate` / `afterUpdate` | `event`, `orderId`, `status`, `previousStatus?`, `serviceOrderNumber`, `timeInPreviousStatusMs?`, `durationMs?` (=tempo no status anterior, p/ retrocompat), `totalDurationMs?` |
 | `Custom/ServiceOrder/Created` | Metric | `afterCreate` | — |
 | `Custom/ServiceOrder/Status/{STATUS}` | Metric | `afterUpdate` (counter de entradas no status) | — |
 | `Custom/ServiceOrder/TimeInStatus/{PREVIOUS_STATUS}` | Metric (ms) | `afterUpdate` (tempo gasto antes da mudança) | — |
-=======
-| `ServiceOrderEvent` | Custom event | `ServiceOrderModel.afterCreate` / `afterUpdate` | `event`, `orderId`, `status`, `serviceOrderNumber`, `durationMs?` |
-| `Custom/ServiceOrder/Created` | Metric | `afterCreate` | — |
-| `Custom/ServiceOrder/Status/{STATUS}` | Metric | `afterUpdate` | — |
-| `Custom/ServiceOrder/Duration/{STATUS}` | Metric (ms) | `afterUpdate` | — |
->>>>>>> 79525fc7d0d34a45810e0971976a92547617c4ae
 | `Custom/ServiceOrder/Failed` | Metric | `beforeUpdate` (catch) | — |
 | `Log` (event=`order.failed`) | Log | `Logger.error` → `noticeError` | `err`, `order.id`, `service_order_number`, `correlationId` |
 

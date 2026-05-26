@@ -236,7 +236,6 @@ const STATUS_LABEL: Record<string, string> = {
 
 // TODO: move this business rule to the application layer
 ServiceOrderModel.afterUpdate(async (serviceOrder, _options) => {
-<<<<<<< HEAD
   const newStatusLabel = STATUS_LABEL[serviceOrder.status];
   if (!newStatusLabel) return;
 
@@ -306,67 +305,6 @@ ServiceOrderModel.afterUpdate(async (serviceOrder, _options) => {
         service_order_number: serviceOrder.serviceOrderNumber,
       });
     }
-=======
-  const startedAt = serviceOrder.startedServiceAt
-    ? new Date(serviceOrder.startedServiceAt).getTime()
-    : null;
-  const endedAt = serviceOrder.endedServiceAt
-    ? new Date(serviceOrder.endedServiceAt).getTime()
-    : null;
-  const durationMs =
-    startedAt && endedAt ? endedAt - startedAt : undefined;
-
-  const baseFields = {
-    event: "order.processed",
-    "order.id": serviceOrder.id,
-    service_order_number: serviceOrder.serviceOrderNumber,
-    ...(durationMs !== undefined ? { duration_ms: durationMs } : {}),
-  };
-
-  const emit = (status: string) => {
-    Logger.info("order processed", { ...baseFields, "order.status": status });
-    newrelic.recordMetric(`Custom/ServiceOrder/Status/${status}`, 1);
-    if (durationMs !== undefined) {
-      newrelic.recordMetric(`Custom/ServiceOrder/Duration/${status}`, durationMs);
-    }
-    newrelic.recordCustomEvent("ServiceOrderEvent", {
-      event: "order.processed",
-      orderId: serviceOrder.id,
-      status,
-      serviceOrderNumber: serviceOrder.serviceOrderNumber,
-      ...(durationMs !== undefined ? { durationMs } : {}),
-    });
-  };
-
-  switch (serviceOrder.status) {
-    case ServiceOrderStatus.inDiagnostic:
-      emit("DIAGNOSTICO");
-      break;
-    case ServiceOrderStatus.awaitingApproval:
-      if (process.env.NODE_ENV !== "test") {
-        try {
-          Utils.generateQuotation(serviceOrder.serviceOrderNumber);
-        } catch (error) {
-          Logger.error("quotation generation failed", {
-            err: error,
-            service_order_number: serviceOrder.serviceOrderNumber,
-          });
-        }
-      }
-      emit("AGUARDANDO_APROVACAO");
-      break;
-    case ServiceOrderStatus.inExecution:
-      emit("EXECUCAO");
-      break;
-    case ServiceOrderStatus.completed:
-      emit("FINALIZACAO");
-      break;
-    case ServiceOrderStatus.delivered:
-      emit("ENTREGUE");
-      break;
-    default:
-      break;
->>>>>>> 79525fc7d0d34a45810e0971976a92547617c4ae
   }
 
   emit();
