@@ -20,12 +20,15 @@ ENV APP_PORT=3000
 
 RUN addgroup -S app && adduser -S app -G app
 
-COPY --from=deps    /app/node_modules ./node_modules
-COPY --from=builder /app/dist          ./dist
-COPY package*.json ./
-COPY src/infrastructure/database/sequelize/migrations ./src/infrastructure/database/sequelize/migrations
-COPY src/infrastructure/database/sequelize/seeders    ./src/infrastructure/database/sequelize/seeders
-COPY .sequelizerc ./
+COPY --from=deps    --chown=app:app /app/node_modules ./node_modules
+COPY --from=builder --chown=app:app /app/dist          ./dist
+COPY --chown=app:app package*.json ./
+COPY --chown=app:app src/infrastructure/database/sequelize/migrations ./src/infrastructure/database/sequelize/migrations
+COPY --chown=app:app src/infrastructure/database/sequelize/seeders    ./src/infrastructure/database/sequelize/seeders
+COPY --chown=app:app .sequelizerc ./
+
+# Ensure /app is writable by app user (newrelic agent log file)
+RUN chown app:app /app
 
 USER app
 EXPOSE 3000
