@@ -16,6 +16,10 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 
 ### Pré-requisitos
 
+## Desenvolvimento local
+
+### Pré-requisitos
+
 - Docker e Docker Compose
 
 ### Variáveis de ambiente
@@ -59,6 +63,12 @@ npm run test:coverage
 ```
 
 ### Credenciais de teste
+
+- **Admin**: `admin@techchallenge.com` / `admin123`
+- **Customer**: `joao.silva@email.com` / `senha123`
+
+
+## Variáveis de Ambiente
 
 - **Admin**: `admin@techchallenge.com` / `admin123`
 - **Customer**: `joao.silva@email.com` / `senha123`
