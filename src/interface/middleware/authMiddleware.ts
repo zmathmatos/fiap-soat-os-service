@@ -18,7 +18,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   try {
     // authorization comes from the /admin authentication
     // auth_token is used for customer authentication
-    const authHeader = req.headers.authorization ?? req.headers.auth_token ?? "";
+    const authHeader = req.headers.authorization ?? (req.headers.auth_token as string) ?? "";
 
     if (!authHeader) {
       res.status(401).json(HttpPresenters.unauthorized('No token provided'));
