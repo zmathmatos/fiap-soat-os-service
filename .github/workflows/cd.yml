@@ -117,7 +117,12 @@ jobs:
             --from-literal=LOG_LEVEL="info" \
             --from-literal=NEW_RELIC_ENABLED="true" \
             --from-literal=NEW_RELIC_APP_NAME="$NEW_RELIC_APP_NAME" \
-            --from-literal=NEW_RELIC_LOG_LEVEL="info" \
+            --from-literal=NEW_RELIC_LOG_LEVEL="debug" \
+            --from-literal=NEW_RELIC_LOG="stdout" \
+            --from-literal=NEW_RELIC_NO_CONFIG_FILE="true" \
+            --from-literal=NEW_RELIC_DISTRIBUTED_TRACING_ENABLED="true" \
+            --from-literal=NEW_RELIC_APPLICATION_LOGGING_ENABLED="true" \
+            --from-literal=NEW_RELIC_APPLICATION_LOGGING_FORWARDING_ENABLED="true" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply Secret
