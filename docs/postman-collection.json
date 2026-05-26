@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "FIAP SOAT Tech Challenge - App",
+    "description": "Coleção de endpoints da aplicação principal. Substitua {{baseUrl}}, {{adminToken}} e {{customerToken}} no Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "adminToken", "value": "" },
+    { "key": "customerToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@techchallenge.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Full", "request": { "method": "GET", "url": "{{baseUrl}}/health" } },
+        { "name": "Liveness", "request": { "method": "GET", "url": "{{baseUrl}}/health/live" } },
+        { "name": "Readiness", "request": { "method": "GET", "url": "{{baseUrl}}/health/ready" } }
+      ]
+    },
+    {
+      "name": "Admin / Users",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Joao Silva\",\n  \"email\": \"joao@x.com\",\n  \"password\": \"senha123\",\n  \"document\": \"12345678900\",\n  \"role\": \"customer\"\n}"
+            }
+          }
+        },
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/users" } },
+        { "name": "Get by ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/users/:id" } },
+        { "name": "Get by document", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/users/document/:document" } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/users/:id", "body": { "mode": "raw", "raw": "{\n  \"name\": \"Joao S.\"\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/users/:id" } }
+      ]
+    },
+    {
+      "name": "Admin / Vehicles",
+      "item": [
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/vehicles", "body": { "mode": "raw", "raw": "{\n  \"licensePlate\": \"ABC1D23\",\n  \"brand\": \"Fiat\",\n  \"model\": \"Uno\",\n  \"year\": 2020,\n  \"userId\": \"<uuid>\"\n}" } } },
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/vehicles" } },
+        { "name": "Get by ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/vehicles/:id" } },
+        { "name": "Get by plate", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/vehicles/license-plate/:licensePlate" } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/vehicles/:id" } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/vehicles/:id" } }
+      ]
+    },
+    {
+      "name": "Admin / Parts",
+      "item": [
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/parts", "body": { "mode": "raw", "raw": "{\n  \"partNumber\": \"P-001\",\n  \"name\": \"Filtro de oleo\",\n  \"price\": 49.9,\n  \"stock\": 30\n}" } } },
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/parts" } },
+        { "name": "Get by ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/parts/:id" } },
+        { "name": "Get by part number", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/parts/part-number/:partNumber" } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/parts/:id" } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/parts/:id" } }
+      ]
+    },
+    {
+      "name": "Admin / Services",
+      "item": [
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/services", "body": { "mode": "raw", "raw": "{\n  \"serviceCode\": \"S-001\",\n  \"name\": \"Troca de oleo\",\n  \"price\": 120.0\n}" } } },
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/services" } },
+        { "name": "Get by ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/services/:id" } },
+        { "name": "Get by code", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/services/service-code/:serviceCode" } },
+        { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/services/:id" } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/services/:id" } }
+      ]
+    },
+    {
+      "name": "Admin / Service Orders",
+      "item": [
+        { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/service-orders", "body": { "mode": "raw", "raw": "{\n  \"userId\": \"<uuid>\",\n  \"vehicleId\": \"<uuid>\"\n}" } } },
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders" } },
+        { "name": "Average time analytics", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/analytics/average-time" } },
+        { "name": "Get by OS number", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/number/:serviceOrderNumber" } },
+        { "name": "Get by ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/:id" } },
+        { "name": "Set in diagnostic", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/:id/in-diagnostic" } },
+        { "name": "Add parts and services", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/service-orders/:id/add-parts-and-services", "body": { "mode": "raw", "raw": "{\n  \"parts\": [{ \"partId\": \"<uuid>\", \"quantity\": 2 }],\n  \"serviceIds\": [\"<uuid>\"]\n}" } } },
+        { "name": "Set in execution", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/:id/in-execution" } },
+        { "name": "Set completed", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/:id/completed" } },
+        { "name": "Set delivered", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/:id/delivered" } },
+        { "name": "Update status", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/service-orders/:id/status", "body": { "mode": "raw", "raw": "{\n  \"status\": \"inExecution\"\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/service-orders/:id" } }
+      ]
+    },
+    {
+      "name": "Customer / Service Orders",
+      "item": [
+        { "name": "Get by OS number", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/number/:serviceOrderNumber" } },
+        { "name": "Get by document", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/user/document/:document" } },
+        { "name": "Get by plate", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/vehicle/license-plate/:licensePlate" } },
+        { "name": "Approve quotation", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/:serviceOrderNumber/quotation/approval" } },
+        { "name": "Reject quotation", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/:serviceOrderNumber/quotation/rejection" } }
+      ]
+    }
+  ]
+}

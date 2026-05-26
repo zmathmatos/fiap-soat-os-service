@@ -1,0 +1,75 @@
+sequenceDiagram
+    autonumber
+    actor Customer
+    participant APIGW as AWS API Gateway
+    participant Lambda as Lambda Auth (CPF/JWT)
+    participant RDS as RDS PostgreSQL
+    participant App as Node.js App (EKS)
+    participant NR as New Relic (APM/Logs)
+
+    %% =========================
+    %% Fluxo 1 — Autenticação via CPF
+    %% =========================
+    rect rgb(230, 245, 255)
+        Note over Customer,NR: Fluxo 1 — Autenticação via CPF
+        Customer->>APIGW: POST /auth { cpf }
+        APIGW->>Lambda: Invoke (event.body)
+        Lambda->>Lambda: Validar formato do CPF
+        alt CPF inválido
+            Lambda-->>APIGW: 400 { error: "invalid CPF" }
+            APIGW-->>Customer: 400
+        else CPF válido
+            Lambda->>RDS: SELECT user WHERE cpf = ?
+            alt Customer não encontrado
+                RDS-->>Lambda: empty
+                Lambda-->>APIGW: 404 { error: "customer not found" }
+                APIGW-->>Customer: 404
+            else Customer ativo
+                RDS-->>Lambda: user row (id, role, status)
+                Lambda->>Lambda: Assinar JWT (HS256, exp 24h)
+                Lambda-->>APIGW: 200 { token }
+                APIGW-->>Customer: 200 { token }
+            end
+        end
+    end
+
+    %% =========================
+    %% Fluxo 2 — Abertura de Ordem de Serviço
+    %% =========================
+    rect rgb(232, 250, 232)
+        Note over Customer,NR: Fluxo 2 — Abertura de Ordem de Serviço
+        Customer->>APIGW: POST /customer/service-orders<br/>Authorization: Bearer <JWT><br/>X-Correlation-Id: <uuid?>
+        APIGW->>APIGW: Authorizer valida JWT (kid/exp)
+        alt JWT inválido/expirado
+            APIGW-->>Customer: 401 Unauthorized
+        else JWT válido
+            APIGW->>App: Forward request + claims
+            App->>App: correlationId middleware (gera UUID se ausente)
+            App->>NR: log { level:"info", msg:"request received", correlationId, route }
+            App->>App: authMiddleware valida JWT local
+            App->>RDS: BEGIN TX
+            App->>RDS: INSERT service_orders (status="Recebido")
+            App->>RDS: INSERT service_order_parts / service_order_services
+            App->>RDS: COMMIT
+            RDS-->>App: order row
+            App->>NR: log { msg:"order created", order.id, order.status:"Recebido", correlationId }
+            App-->>APIGW: 201 Created { order }
+            APIGW-->>Customer: 201 { order }
+        end
+    end
+
+    %% =========================
+    %% Fluxo 3 — Transição de Status (Diagnóstico → Execução → Finalização)
+    %% =========================
+    rect rgb(255, 245, 230)
+        Note over Customer,NR: Fluxo 3 — Transição de Status
+        Customer->>APIGW: PATCH /admin/service-orders/:id { status:"EmExecucao" }
+        APIGW->>App: Forward + JWT (admin)
+        App->>RDS: BEGIN TX
+        App->>RDS: UPDATE service_orders SET status='EmExecucao', startedServiceAt=now()
+        App->>RDS: UPDATE parts inventory (decrement)
+        App->>RDS: COMMIT
+        App->>NR: log { msg:"order processed", order.id, order.status:"EXECUCAO", duration_ms, correlationId }
+        App-->>APIGW: 200 OK
+        APIGW-->>Customer: 200
+    end

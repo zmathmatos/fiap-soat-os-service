@@ -6,11 +6,18 @@ import helmet from "helmet";
 
 import routers from "./routers";
 import { authMiddleware, adminMiddleware } from "../../interface/middleware/authMiddleware";
+import { correlationIdMiddleware } from "../../interface/middleware/correlationIdMiddleware";
+import Logger from "../database/sequelize/utils/Logger";
 
 const app = express();
 
 // Middlewares
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(correlationIdMiddleware);
+app.use(
+  morgan(process.env.NODE_ENV === "production" ? "combined" : "dev", {
+    stream: { write: (line: string) => Logger.info(line.trim(), { event: "http.access" }) },
+  }),
+);
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
@@ -46,8 +53,18 @@ app.use("/customer", authMiddleware);
 app.use("/customer/service-orders", routers.customerServiceOrders);
 
 // Error handler
-app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
-  res.status(500).send(error.message);
+app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
+  const correlationId = res.getHeader("x-correlation-id") as string | undefined;
+  Logger.error("unhandled request error", {
+    err: error,
+    event: "http.error",
+    method: req.method,
+    path: req.originalUrl,
+  });
+  res.status(500).json({
+    error: error.message,
+    correlationId,
+  });
 });
 
 export default app;
