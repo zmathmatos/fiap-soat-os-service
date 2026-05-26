@@ -123,7 +123,7 @@ npm run test:coverage
 | `DELETE` | `/admin/service-orders/:id` | Admin | Remove ordem |
 | `GET` | `/customer/service-orders` | Customer | Ordens do cliente autenticado |
 
-> **Nota**: A autenticação é feita via header `x-document` para todas as rotas `/customer/*` via (CPF) no API Gateway. O endpoint `POST /auth` continua disponível para uso direto sem autenticação, mas via API Gateway.
+> **Nota**: A autenticação é feita via header `x-document` para todas as rotas `/customer/*` via (CPF) no API Gateway. Todos os outros endpoints continuam disponíveeis para uso direto sem autenticação, mas via API Gateway.
 
 ## CI/CD
 
