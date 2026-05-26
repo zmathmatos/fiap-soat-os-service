@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-// New Relic agent must be required before any other module.
-// It is no-op when NEW_RELIC_ENABLED !== "true".
-if (process.env.NEW_RELIC_ENABLED === "true") {
-  require("newrelic");
-}
+// New Relic agent is preloaded via `node -r newrelic` in the start script
+// (see package.json). That guarantees the agent is initialized BEFORE any
+// other module is imported — required so it can instrument express/http.
+// When NEW_RELIC_ENABLED !== "true", newrelic.js sets agent_enabled = false
+// and the preload becomes a no-op.
 
 import app from "./infrastructure/web/app";
 import { initializeDatabase } from "./infrastructure/database/sequelize/init";
