@@ -16,7 +16,9 @@ declare global {
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const authHeader = req.headers.authorization;
+    // authorization comes from the /admin authentication
+    // auth_token is used for customer authentication
+    const authHeader = req.headers.authorization ?? req.headers.auth_token ?? "";
 
     if (!authHeader) {
       res.status(401).json(HttpPresenters.unauthorized('No token provided'));
