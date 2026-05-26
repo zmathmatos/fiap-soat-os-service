@@ -1,10 +1,18 @@
 name: CD - Build, Push to ECR and Deploy to EKS
 
-# Trigger the workflow manually from the GitHub Actions tab or via API
-# Avoid to deploy on every pull request on AWS Academy environment, 
-# since it has limited resources
+# Auto-deploys on push to master (production) and develop (homologation).
+# workflow_dispatch kept as a manual fallback for ad-hoc runs.
+# Tag the commit message with "[skip ci]" to skip the deploy.
 
 on:
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".gitignore"
   workflow_dispatch:
 
 env:
@@ -97,6 +105,7 @@ jobs:
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
           JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN || '24h' }}
+          NEW_RELIC_APP_NAME: ${{ vars.NEW_RELIC_APP_NAME || 'fiap-web-dev' }}
         run: |
           kubectl -n "$K8S_NAMESPACE" create configmap "${APP_NAME}-config" \
             --from-literal=DB_HOST="$DB_HOST" \
@@ -105,6 +114,10 @@ jobs:
             --from-literal=APP_PORT="3000" \
             --from-literal=NODE_ENV="production" \
             --from-literal=JWT_EXPIRES_IN="$JWT_EXPIRES_IN" \
+            --from-literal=LOG_LEVEL="info" \
+            --from-literal=NEW_RELIC_ENABLED="true" \
+            --from-literal=NEW_RELIC_APP_NAME="$NEW_RELIC_APP_NAME" \
+            --from-literal=NEW_RELIC_LOG_LEVEL="info" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply Secret
@@ -112,11 +125,13 @@ jobs:
           DB_USER:    ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         run: |
           kubectl -n "$K8S_NAMESPACE" create secret generic "${APP_NAME}-secret" \
             --from-literal=DB_USER="$DB_USER" \
             --from-literal=DB_PASSWORD="$DB_PASSWORD" \
             --from-literal=JWT_SECRET="$JWT_SECRET" \
+            --from-literal=NEW_RELIC_LICENSE_KEY="$NEW_RELIC_LICENSE_KEY" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Delete previous migration Job (Jobs are immutable)

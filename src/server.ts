@@ -1,7 +1,25 @@
-import app from "./infrastructure/web/app";
 import dotenv from "dotenv";
-import { initializeDatabase } from "./infrastructure/database/sequelize/init";
 dotenv.config();
+
+// New Relic agent must be required before any other module.
+// It is no-op when NEW_RELIC_ENABLED !== "true".
+if (process.env.NEW_RELIC_ENABLED === "true") {
+  require("newrelic");
+}
+
+import app from "./infrastructure/web/app";
+import { initializeDatabase } from "./infrastructure/database/sequelize/init";
+import Logger from "./infrastructure/database/sequelize/utils/Logger";
+
+process.on("unhandledRejection", (reason) => {
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  Logger.error("unhandled promise rejection", { err, event: "process.unhandledRejection" });
+});
+
+process.on("uncaughtException", (error) => {
+  Logger.error("uncaught exception", { err: error, event: "process.uncaughtException" });
+  setTimeout(() => process.exit(1), 250);
+});
 
 const port = process.env.APP_PORT || 3000;
 const MAX_RETRIES = 10;
