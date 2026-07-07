@@ -46,10 +46,9 @@ app.use("/admin/services", routers.services);
 // Set Service Order routes
 app.use("/admin/service-orders", routers.serviceOrders);
 
-// Apply authentication middleware to all customer routes
-app.use("/customer", authMiddleware);
-
 // Set Customer Service Order routes
+// Authentication is applied per-route inside the router, since order creation
+// must be reachable by customers who aren't registered/authenticated yet.
 app.use("/customer/service-orders", routers.customerServiceOrders);
 
 // Error handler
