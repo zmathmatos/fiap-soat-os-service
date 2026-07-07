@@ -113,6 +113,7 @@
     {
       "name": "Customer / Service Orders",
       "item": [
+        { "name": "Create (public)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/customer/service-orders", "body": { "mode": "raw", "raw": "{\n  \"name\": \"Joao Silva\",\n  \"document\": \"12345678900\",\n  \"email\": \"joao@x.com\",\n  \"password\": \"senha123\",\n  \"licensePlate\": \"ABC1D23\",\n  \"brand\": \"Fiat\",\n  \"model\": \"Uno\",\n  \"year\": 2020,\n  \"serviceIds\": [],\n  \"partIds\": []\n}" } } },
         { "name": "Get by OS number", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/number/:serviceOrderNumber" } },
         { "name": "Get by document", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/user/document/:document" } },
         { "name": "Get by plate", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }], "url": "{{baseUrl}}/customer/service-orders/vehicle/license-plate/:licensePlate" } },
