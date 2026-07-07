@@ -297,14 +297,14 @@ ServiceOrderModel.afterUpdate(async (serviceOrder, _options) => {
     serviceOrder.status === ServiceOrderStatus.awaitingApproval &&
     process.env.NODE_ENV !== "test"
   ) {
-    try {
-      Utils.generateQuotation(serviceOrder.serviceOrderNumber);
-    } catch (error) {
-      Logger.error("quotation generation failed", {
-        err: error,
-        service_order_number: serviceOrder.serviceOrderNumber,
-      });
-    }
+    void Utils.generateQuotation(serviceOrder.serviceOrderNumber).catch(
+      (error) => {
+        Logger.error("quotation generation failed", {
+          err: error,
+          service_order_number: serviceOrder.serviceOrderNumber,
+        });
+      },
+    );
   }
 
   emit();

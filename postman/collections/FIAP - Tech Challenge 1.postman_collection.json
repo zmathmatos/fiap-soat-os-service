@@ -1187,6 +1187,40 @@
           "name": "Service Orders",
           "item": [
             {
+              "name": "Create Service Order",
+              "id": "so-create-customer-001",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"John Doe\",\n    \"document\": \"14572457000185\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"P@ssw0rd\",\n    \"licensePlate\": \"AAA6879\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Corolla\",\n    \"year\": 2020,\n    \"serviceIds\": [],\n    \"partIds\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{api}}/customer/service-orders",
+                  "host": [
+                    "{{api}}"
+                  ],
+                  "path": [
+                    "customer",
+                    "service-orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
               "name": "Get Service Order by Number",
               "id": "d4734b36-ee77-4f76-9074-7bf83ceb1eb8",
               "request": {
