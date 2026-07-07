@@ -6,6 +6,7 @@ import { VehicleRepository } from "../../repositories/VehicleRepository";
 import { ServiceRepository } from "../../repositories/ServiceRepository";
 import { HttpPresenters, ServiceOrderPresenter } from "../../../interface/presenters";
 import { Vehicle } from "../../../domain/entities/Vehicle";
+import { User } from "../../../domain/entities/User";
 import { ServiceOrderStatus } from "../../../domain/entities/ServiceOrder";
 import { ServiceController } from "../../../interface/controllers/ServiceController";
 import { ServiceOrderController } from "../../../interface/controllers/ServiceOrderController";
@@ -66,6 +67,52 @@ export class WebServiceOrderController {
         const services = await this.serviceController.getServiceByServiceCodes(serviceCodes);
         serviceIds = services.map((service) => service.id);
       }
+      const serviceOrder = await this.serviceOrderController.create(user.id, vehicle.id, serviceIds, partIds);
+      res.status(201).json(HttpPresenters.created(ServiceOrderPresenter.toResponse(serviceOrder)));
+    } catch (error) {
+      handleError(res, error);
+    }
+  }
+
+  async createForCustomer(req: Request, res: Response): Promise<void> {
+    const missing = requiredFields(
+      ["name", "document", "email", "password", "licensePlate", "brand", "model", "year"],
+      req.body,
+    );
+    if (missing) {
+      res.status(400).json(HttpPresenters.badRequest(`${missing} is required`));
+      return;
+    }
+    try {
+      const { name, document, email, password, licensePlate, brand, model, year, serviceIds, partIds } = req.body;
+
+      let user: User | null = null;
+      try {
+        user = await this.userController.getByDocument(document);
+      } catch (error) {
+        if (!(error instanceof Error) || !error.message.includes("not found")) {
+          throw error;
+        }
+      }
+      if (!user) {
+        try {
+          user = await this.userController.create({ name, document, email, password });
+        } catch (error) {
+          res.status(400).json(HttpPresenters.badRequest("Error creating user: " + (error instanceof Error ? error.message : "")));
+          return;
+        }
+      }
+
+      let vehicle = await this.vehicleController.getVehicleByLicensePlate(licensePlate);
+      if (!vehicle) {
+        try {
+          vehicle = await this.vehicleController.create(licensePlate, brand, model, Number(year));
+        } catch (error) {
+          res.status(400).json(HttpPresenters.badRequest("Error creating vehicle: " + (error instanceof Error ? error.message : "")));
+          return;
+        }
+      }
+
       const serviceOrder = await this.serviceOrderController.create(user.id, vehicle.id, serviceIds, partIds);
       res.status(201).json(HttpPresenters.created(ServiceOrderPresenter.toResponse(serviceOrder)));
     } catch (error) {

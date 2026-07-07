@@ -4,6 +4,7 @@ import { WebServiceOrderController } from "../../../controllers/WebServiceOrderC
 const router = Router();
 const serviceOrderController = new WebServiceOrderController();
 
+router.post("/", (req, res) => serviceOrderController.createForCustomer(req, res));
 router.get("/number/:serviceOrderNumber", (req, res) => serviceOrderController.getByServiceOrderNumber(req, res));
 router.get("/user/document/:document", (req, res) => serviceOrderController.getByUserDocument(req, res));
 router.get("/vehicle/license-plate/:licensePlate", (req, res) => serviceOrderController.getByVehicleLicensePlate(req, res));

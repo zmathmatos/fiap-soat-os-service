@@ -27,6 +27,7 @@ describe("WebServiceOrderController Integration Tests", () => {
   let responseData: any;
   let userId: string;
   let vehicleId: string;
+  let serviceId: string;
 
   const firstUserEmail = "user1@email.com";
   const firstUserPassword = "user1_password";
@@ -91,6 +92,7 @@ describe("WebServiceOrderController Integration Tests", () => {
       serviceCode: serviceData.serviceCode,
       price: serviceData.price,
     });
+    serviceId = serviceModel.id;
   });
 
   afterEach(async () => {
@@ -279,6 +281,112 @@ describe("WebServiceOrderController Integration Tests", () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalled();
+    });
+  });
+
+  describe("createForCustomer", () => {
+    it("should create a new user and a new vehicle when neither is registered", async () => {
+      mockRequest.body = {
+        name: "New Customer",
+        document: "98765432100",
+        email: "new.customer@email.com",
+        password: "customer_password",
+        licensePlate: "NEW1111",
+        brand: "Fiat",
+        model: "Uno",
+        year: 2020,
+        serviceIds: [serviceId],
+      };
+
+      await webServiceOrderController.createForCustomer(
+        mockRequest as Request,
+        mockResponse as Response,
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+      expect(responseData.data).toHaveProperty("id");
+      expect(responseData.data.user.document).toBe("98765432100");
+      expect(responseData.data.vehicle.licensePlate).toBe("NEW1111");
+      expect(responseData.data.services).toHaveLength(1);
+
+      const createdUser = await UserModel.findOne({
+        where: { document: "98765432100" },
+      });
+      expect(createdUser).toBeDefined();
+
+      const createdVehicle = await VehicleModel.findOne({
+        where: { licensePlate: "NEW1111" },
+      });
+      expect(createdVehicle).toBeDefined();
+    });
+
+    it("should associate the service order with the existing user and vehicle", async () => {
+      mockRequest.body = {
+        name: "John Doe",
+        document: "12345678909",
+        email: firstUserEmail,
+        password: firstUserPassword,
+        licensePlate: "ABC1234",
+        brand: "Toyota",
+        model: "Camry",
+        year: 2023,
+        serviceIds: [serviceId],
+      };
+
+      await webServiceOrderController.createForCustomer(
+        mockRequest as Request,
+        mockResponse as Response,
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+      expect(responseData.data.user.id).toBe(userId);
+      expect(responseData.data.vehicle.id).toBe(vehicleId);
+
+      const usersWithDocument = await UserModel.findAll({
+        where: { document: "12345678909" },
+      });
+      expect(usersWithDocument).toHaveLength(1);
+
+      const vehiclesWithPlate = await VehicleModel.findAll({
+        where: { licensePlate: "ABC1234" },
+      });
+      expect(vehiclesWithPlate).toHaveLength(1);
+    });
+
+    it("should return 400 when a required field is missing", async () => {
+      mockRequest.body = {
+        document: "12345678909",
+        licensePlate: "ABC1234",
+      };
+
+      await webServiceOrderController.createForCustomer(
+        mockRequest as Request,
+        mockResponse as Response,
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalled();
+    });
+
+    it("should return 400 when the document is invalid", async () => {
+      mockRequest.body = {
+        name: "Invalid Doc Customer",
+        document: "123456789",
+        email: "invalid.doc@email.com",
+        password: "customer_password",
+        licensePlate: "INV0000",
+        brand: "Fiat",
+        model: "Uno",
+        year: 2020,
+      };
+
+      await webServiceOrderController.createForCustomer(
+        mockRequest as Request,
+        mockResponse as Response,
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toContain("Invalid document");
     });
   });
 

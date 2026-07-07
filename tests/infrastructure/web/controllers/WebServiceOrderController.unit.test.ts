@@ -177,6 +177,159 @@ describe("WebServiceOrderController - Error Scenarios", () => {
     });
   });
 
+  // ─── createForCustomer ─────────────────────────────────────────────────────
+
+  describe("createForCustomer", () => {
+    const fullBody = {
+      name: "John",
+      document: "12345678909",
+      email: "john@email.com",
+      password: "secret123",
+      licensePlate: "ABC1234",
+      brand: "Toyota",
+      model: "Corolla",
+      year: 2023,
+      serviceIds: ["svc-id"],
+      partIds: ["part-id"],
+    };
+
+    it("should return 400 when a required field is missing", async () => {
+      mockRequest.body = { document: "12345678909" };
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toBe("name is required");
+      expect(mockUserController.getByDocument).not.toHaveBeenCalled();
+    });
+
+    it("should create a new user and a new vehicle when neither exists", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(null);
+      mockUserController.create.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(null);
+      mockVehicleController.create.mockResolvedValue(mockVehicle as any);
+      mockSOController.create.mockResolvedValue(mockServiceOrder as any);
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockUserController.create).toHaveBeenCalledWith({
+        name: fullBody.name,
+        document: fullBody.document,
+        email: fullBody.email,
+        password: fullBody.password,
+      });
+      expect(mockVehicleController.create).toHaveBeenCalledWith(
+        fullBody.licensePlate,
+        fullBody.brand,
+        fullBody.model,
+        fullBody.year,
+      );
+      expect(mockSOController.create).toHaveBeenCalledWith(
+        mockUser.id,
+        mockVehicle.id,
+        fullBody.serviceIds,
+        fullBody.partIds,
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+      expect(responseData.data).toBeDefined();
+    });
+
+    it("should reuse an existing user and vehicle instead of creating them", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(mockVehicle as any);
+      mockSOController.create.mockResolvedValue(mockServiceOrder as any);
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockUserController.create).not.toHaveBeenCalled();
+      expect(mockVehicleController.create).not.toHaveBeenCalled();
+      expect(mockSOController.create).toHaveBeenCalledWith(
+        mockUser.id,
+        mockVehicle.id,
+        fullBody.serviceIds,
+        fullBody.partIds,
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+    });
+
+    it("should return 400 when user creation fails with an Error", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(null);
+      mockUserController.create.mockRejectedValue(new Error("Invalid document"));
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toBe("Error creating user: Invalid document");
+      expect(mockVehicleController.getVehicleByLicensePlate).not.toHaveBeenCalled();
+    });
+
+    it("should return 400 when user creation fails with a non-Error", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(null);
+      mockUserController.create.mockRejectedValue("db crash");
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toBe("Error creating user: ");
+    });
+
+    it("should return 400 when vehicle creation fails with an Error", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(null);
+      mockVehicleController.create.mockRejectedValue(
+        new Error("Vehicle with this license plate already exists"),
+      );
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toBe(
+        "Error creating vehicle: Vehicle with this license plate already exists",
+      );
+      expect(mockSOController.create).not.toHaveBeenCalled();
+    });
+
+    it("should return 400 when vehicle creation fails with a non-Error", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(null);
+      mockVehicleController.create.mockRejectedValue("db crash");
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toBe("Error creating vehicle: ");
+    });
+
+    it("should return 400 when serviceOrderController.create throws an Error", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(mockVehicle as any);
+      mockSOController.create.mockRejectedValue(new Error("Creation failed"));
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(responseData.error).toBe("Creation failed");
+    });
+
+    it("should return 500 when serviceOrderController.create throws a non-Error", async () => {
+      mockRequest.body = { ...fullBody };
+      mockUserController.getByDocument.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(mockVehicle as any);
+      mockSOController.create.mockRejectedValue({ code: 500 });
+
+      await webController.createForCustomer(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+    });
+  });
+
   // ─── getById ───────────────────────────────────────────────────────────────
 
   describe("getById", () => {
