@@ -8,9 +8,9 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 | Repositório | Conteúdo |
 |---|---|
 | **[fiap-soat-tech-challenge-app](https://github.com/zmathmatos/fiap-soat-tech-challenge-app)** | ← Este repo — Código da aplicação |
-| [fiap-soat-tech-challenge-lambda](https://github.com/zmathmatos/fiap-soat-tech-challenge-lambda) | Lambda de autenticação via CPF (API Gateway + AWS Lambda) |
-| [fiap-soat-tech-challenge-infra-k8s](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-k8s) | Infraestrutura Kubernetes (VPC, EKS) via Terraform |
 | [fiap-soat-tech-challenge-infra-db](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | Infraestrutura do banco de dados (RDS PostgreSQL) via Terraform |
+
+> OBSERVAÇÃO: Devido à questão de limitação de créditos do AWS Academy, teremos o banco de dados provisionado pelo repositório `fiap-soat-tech-challenge-infra-db` e a isolamento dos bancos dos microsserviços será lógico. Mas estamos cientes de que em uma aplicação real cada serviço possui seu próprio banco.
 
 ## Desenvolvimento local
 
