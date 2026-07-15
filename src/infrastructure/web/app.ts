@@ -51,6 +51,9 @@ app.use("/admin/service-orders", routers.serviceOrders);
 // must be reachable by customers who aren't registered/authenticated yet.
 app.use("/customer/service-orders", routers.customerServiceOrders);
 
+// Billing service event callbacks — no auth required (internal service-to-service)
+app.use("/service-orders", routers.serviceOrderEvents);
+
 // Error handler
 app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
   const correlationId = res.getHeader("x-correlation-id") as string | undefined;

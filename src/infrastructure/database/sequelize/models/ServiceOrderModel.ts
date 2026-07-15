@@ -297,7 +297,7 @@ ServiceOrderModel.afterUpdate(async (serviceOrder, _options) => {
     serviceOrder.status === ServiceOrderStatus.awaitingApproval &&
     process.env.NODE_ENV !== "test"
   ) {
-    void Utils.generateQuotation(serviceOrder.serviceOrderNumber).catch(
+    void Utils.generateQuotation(serviceOrder.id).catch(
       (error) => {
         Logger.error("quotation generation failed", {
           err: error,
