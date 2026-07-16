@@ -313,81 +313,41 @@ export class WebServiceOrderController {
     }
   }
 
-  async approveQuotation(req: Request, res: Response): Promise<void> {
+  async handleBillingEvent(req: Request, res: Response): Promise<void> {
     try {
-      const { serviceOrderNumber } = req.params;
+      const { id } = req.params;
+      const { event } = req.body as { event?: string };
 
-      const serviceOrder =
-        await this.serviceOrderController.getByServiceOrderNumber(
-          Number(serviceOrderNumber),
-        );
+      const statusByEvent: Record<string, ServiceOrderStatus> = {
+        "quotation.rejected": ServiceOrderStatus.completed,
+        "payment.approved": ServiceOrderStatus.inExecution,
+        "payment.failed": ServiceOrderStatus.completed,
+      };
 
-      if (!serviceOrder) {
-        res
-          .status(404)
-          .json(HttpPresenters.notFound("Service Order not found"));
+      const newStatus = event ? statusByEvent[event] : undefined;
+      if (!newStatus) {
+        res.status(400).json(HttpPresenters.badRequest(`Unknown billing event: ${event}`));
         return;
       }
 
-      const updatedServiceOrder = await this.serviceOrderController.update({
+      const serviceOrder = await this.serviceOrderController.getById(id);
+      if (!serviceOrder) {
+        res.status(404).json(HttpPresenters.notFound("Service Order not found"));
+        return;
+      }
+
+      await this.serviceOrderController.update({
         id: serviceOrder.id,
         userId: serviceOrder.user.id,
         vehicleId: serviceOrder.vehicle.id,
         partsQuantities: undefined,
         serviceIds: undefined,
-        status: ServiceOrderStatus.inExecution,
+        status: newStatus,
       });
 
-      res
-        .status(200)
-        .send(
-          `Service order #${updatedServiceOrder.serviceOrderNumber} is approved`,
-        );
+      res.status(204).send();
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json(HttpPresenters.badRequest(error.message));
-      } else {
-        res.status(500).json(HttpPresenters.internalServerError());
-      }
-    }
-  }
-
-  async rejectQuotation(req: Request, res: Response): Promise<void> {
-    try {
-      const { serviceOrderNumber } = req.params;
-
-      const serviceOrder =
-        await this.serviceOrderController.getByServiceOrderNumber(
-          Number(serviceOrderNumber),
-        );
-
-      if (!serviceOrder) {
-        res
-          .status(404)
-          .json(HttpPresenters.notFound("Service Order not found"));
-        return;
-      }
-
-      const updatedServiceOrder = await this.serviceOrderController.update({
-        id: serviceOrder.id,
-        userId: serviceOrder.user.id,
-        vehicleId: serviceOrder.vehicle.id,
-        partsQuantities: undefined,
-        serviceIds: undefined,
-        status: ServiceOrderStatus.completed,
-      });
-
-      res
-        .status(200)
-        .send(
-          `Service order #${updatedServiceOrder.serviceOrderNumber} is rejected`,
-        );
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json(HttpPresenters.badRequest(error.message));
-      } else {
-        res.status(500).json(HttpPresenters.internalServerError());
-      }
+      handleError(res, error);
     }
   }
 

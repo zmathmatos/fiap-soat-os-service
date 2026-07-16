@@ -11,6 +11,9 @@ import serviceOrders from "./routes/admin/service-orders";
 // Customer routes
 import customerServiceOrders from "./routes/customer/service-orders";
 
+// Billing service callbacks
+import serviceOrderEvents from "./routes/service-order-events";
+
 export default {
   health,
   auth,
@@ -20,4 +23,5 @@ export default {
   services,
   serviceOrders,
   customerServiceOrders,
+  serviceOrderEvents,
 };
