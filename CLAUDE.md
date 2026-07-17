@@ -25,6 +25,7 @@ This service does **not** own business logic that belongs to other micro-service
 | Database | PostgreSQL 14 |
 | Authentication | JWT (`jsonwebtoken`) + bcrypt (`bcryptjs`) |
 | Logging | Pino (structured JSON) + Morgan (HTTP) |
+| Messaging | RabbitMQ (`amqplib`) — consumes `payment.approved`/`payment.failed` from `fiap-soat-billing-service` |
 | APM | New Relic (preloaded via `node -r newrelic`) |
 | Build | `esbuild-node-tsc` (targets ES2016) |
 | Containerisation | Docker (multi-stage, non-root `app` user) |
@@ -41,11 +42,17 @@ The codebase follows **Clean Architecture** with four layers:
 src/
 ├── domain/           # Entities and repository interfaces
 ├── application/      # Use cases and application services
-├── infrastructure/   # Sequelize models, migrations, DB config, Express app/routers
+├── infrastructure/   # Sequelize models, migrations, DB config, Express app/routers, RabbitMQ consumer
 └── interface/        # HTTP controllers, middleware, presenters
 ```
 
 Dependencies always point inward: `infrastructure` → `application` → `domain`. Never import outward across that boundary.
+
+---
+
+## Async Messaging
+
+This service reacts to billing events **exclusively via RabbitMQ** — there is no synchronous REST push from `fiap-soat-billing-service` for payment outcomes anymore. `RabbitMQPaymentEventConsumer` (`src/infrastructure/messaging/`) binds a durable queue to the `payment-events` topic exchange (routing keys `payment.approved`, `payment.failed`) and calls `ServiceOrderController.applyBillingEvent(serviceOrderId, event)` — the same status-mapping logic used by the `POST /service-orders/:id/events` REST endpoint, which is now only used for `quotation.rejected`. The consumer starts in the background in `server.ts` and retries the connection on failure without blocking the HTTP server; permanent failures (unknown service order, unknown event, malformed payload) are logged and dropped instead of being requeued forever.
 
 ---
 

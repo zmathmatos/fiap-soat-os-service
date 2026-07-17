@@ -318,36 +318,11 @@ export class WebServiceOrderController {
       const { id } = req.params;
       const { event } = req.body as { event?: string };
 
-      const statusByEvent: Record<string, ServiceOrderStatus> = {
-        "quotation.rejected": ServiceOrderStatus.completed,
-        "payment.approved": ServiceOrderStatus.inExecution,
-        "payment.failed": ServiceOrderStatus.completed,
-      };
-
-      const newStatus = event ? statusByEvent[event] : undefined;
-      if (!newStatus) {
-        res.status(400).json(HttpPresenters.badRequest(`Unknown billing event: ${event}`));
-        return;
-      }
-
-      const serviceOrder = await this.serviceOrderController.getById(id);
-      if (!serviceOrder) {
-        res.status(404).json(HttpPresenters.notFound("Service Order not found"));
-        return;
-      }
-
-      await this.serviceOrderController.update({
-        id: serviceOrder.id,
-        userId: serviceOrder.user.id,
-        vehicleId: serviceOrder.vehicle.id,
-        partsQuantities: undefined,
-        serviceIds: undefined,
-        status: newStatus,
-      });
+      await this.serviceOrderController.applyBillingEvent(id as string, event);
 
       res.status(204).send();
     } catch (error) {
-      handleError(res, error);
+      handleError(res, error, "Service Order not found");
     }
   }
 

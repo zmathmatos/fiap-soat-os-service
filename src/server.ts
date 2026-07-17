@@ -10,6 +10,9 @@ dotenv.config();
 import app from "./infrastructure/web/app";
 import { initializeDatabase } from "./infrastructure/database/sequelize/init";
 import Logger from "./infrastructure/database/sequelize/utils/Logger";
+import { RabbitMQPaymentEventConsumer } from "./infrastructure/messaging/RabbitMQPaymentEventConsumer";
+import { ServiceOrderController } from "./interface/controllers/ServiceOrderController";
+import { ServiceOrderRepository } from "./infrastructure/repositories/ServiceOrderRepository";
 
 process.on("unhandledRejection", (reason) => {
   const err = reason instanceof Error ? reason : new Error(String(reason));
@@ -43,6 +46,36 @@ async function waitForDatabase(retries = MAX_RETRIES): Promise<void> {
   }
 }
 
+// Fails soft: unlike waitForDatabase, exhausting retries here does not exit the
+// process — the REST API works without RabbitMQ. But there's no retry after
+// giving up, so a broker outage longer than MAX_RETRIES * RETRY_DELAY leaves
+// payment events unconsumed until the service is restarted.
+async function startPaymentEventConsumer(retries = MAX_RETRIES): Promise<void> {
+  const consumer = new RabbitMQPaymentEventConsumer(
+    new ServiceOrderController(new ServiceOrderRepository()),
+  );
+
+  for (let i = 1; i <= retries; i++) {
+    try {
+      await consumer.start();
+      return;
+    } catch (error) {
+      Logger.error(`RabbitMQ consumer connection attempt ${i}/${retries} failed`, {
+        err: error,
+        event: "rabbitmq.consumer.connectFailed",
+      });
+      if (i === retries) {
+        Logger.error(
+          "Failed to start RabbitMQ consumer after maximum retries — payment events will not be processed until the service restarts",
+          { event: "rabbitmq.consumer.giveUp" },
+        );
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+    }
+  }
+}
+
 async function startServer() {
   try {
     await waitForDatabase();
@@ -52,6 +85,9 @@ async function startServer() {
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`Health check: http://localhost:${port}/health`);
     });
+
+    // Runs in the background — the REST API stays up even if RabbitMQ is unreachable.
+    void startPaymentEventConsumer();
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
