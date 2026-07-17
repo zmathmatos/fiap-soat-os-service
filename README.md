@@ -43,6 +43,39 @@ npm run docker:dev
 
 A API estará disponível em `http://localhost:3000`.
 
+### Rodar junto com o billing-service
+
+O `os-service` e o `fiap-soat-billing-service` se comunicam via REST (o billing chama `OS_SERVICE_URL` para atualizar o status da OS). Como cada repositório tem seu próprio `docker-compose.yml`, subir os dois separadamente cria duas stacks isoladas em redes Docker diferentes — os containers não conseguem se enxergar por padrão.
+
+Para isso funcionar localmente, os dois compose files compartilham uma rede Docker externa chamada `fiap-net`:
+
+```bash
+# 1. Criar a rede compartilhada (uma única vez)
+docker network create fiap-net
+
+# 2. Subir o os-service
+cd fiap-soat-os-service
+docker compose up -d
+
+# 3. Subir o billing-service (em outro terminal/diretório)
+cd ../fiap-soat-billing-service
+docker compose up -d
+```
+
+A ordem não é obrigatória, mas subir o `os-service` primeiro evita erros de conexão recusada caso o `billing-service` tente chamá-lo logo na inicialização.
+
+No `fiap-soat-billing-service`, a variável `OS_SERVICE_URL` deve apontar para o nome do container do os-service na rede compartilhada, não para `localhost`:
+
+```
+OS_SERVICE_URL=http://fiap-web:3000
+```
+
+Para verificar a conectividade entre os containers:
+
+```bash
+docker exec -it <container-do-billing-app> wget -qO- http://fiap-web:3000/health
+```
+
 ### Rodar os testes
 
 ```bash
