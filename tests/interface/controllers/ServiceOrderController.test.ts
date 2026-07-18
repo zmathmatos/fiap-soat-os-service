@@ -413,4 +413,68 @@ describe("ServiceOrderController", () => {
       expect(result.totalOrders).toBe(0);
     });
   });
+
+  describe("applyBillingEvent", () => {
+    it.each([
+      ["quotation.rejected", ServiceOrderStatus.completed],
+      ["payment.approved", ServiceOrderStatus.inExecution],
+      ["payment.failed", ServiceOrderStatus.completed],
+    ])(
+      "maps %s to status %s and updates the service order",
+      async (event, expectedStatus) => {
+        const serviceOrder = makeServiceOrder();
+        const updated = makeServiceOrder({ status: expectedStatus });
+        mockServiceOrderRepository.findById.mockResolvedValue(serviceOrder);
+        mockServiceOrderRepository.update.mockResolvedValue(updated);
+
+        const result = await serviceOrderController.applyBillingEvent(
+          ORDER_ID,
+          event,
+        );
+
+        expect(result.status).toBe(expectedStatus);
+        expect(mockServiceOrderRepository.findById).toHaveBeenCalledWith(
+          ORDER_ID,
+        );
+        expect(mockServiceOrderRepository.update).toHaveBeenCalledWith(
+          ORDER_ID,
+          expect.objectContaining({ status: expectedStatus }),
+          USER_ID,
+          VEHICLE_ID,
+          undefined,
+          undefined,
+        );
+      },
+    );
+
+    it("throws for an unknown event and does not touch the repository", async () => {
+      await expect(
+        serviceOrderController.applyBillingEvent(ORDER_ID, "unknown.event"),
+      ).rejects.toThrow("Unknown billing event: unknown.event");
+
+      expect(mockServiceOrderRepository.findById).not.toHaveBeenCalled();
+      expect(mockServiceOrderRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("throws for a missing event and does not touch the repository", async () => {
+      await expect(
+        serviceOrderController.applyBillingEvent(ORDER_ID, undefined),
+      ).rejects.toThrow("Unknown billing event: undefined");
+
+      expect(mockServiceOrderRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it("throws when the service order does not exist", async () => {
+      mockServiceOrderRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        serviceOrderController.applyBillingEvent(
+          "non-existent-id",
+          "payment.approved",
+        ),
+      ).rejects.toThrow("Service Order not found");
+
+      expect(mockServiceOrderRepository.update).not.toHaveBeenCalled();
+    });
+  });
 });

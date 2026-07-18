@@ -34,6 +34,9 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 | `NEW_RELIC_LICENSE_KEY` | License key do New Relic (opcional em dev) | `NRAK-...` |
 | `NEW_RELIC_APP_NAME` | Nome do serviço no NR | `fiap-web-dev` |
 | `NEW_RELIC_ENABLED` | Habilita o agente APM | `true` |
+| `RABBITMQ_URL` | Connection string do broker RabbitMQ | `amqp://guest:guest@rabbitmq:5672` |
+| `RABBITMQ_EXCHANGE` | Exchange (topic) onde o billing publica os eventos de pagamento | `payment-events` |
+| `RABBITMQ_QUEUE` | Fila própria deste serviço, ligada ao exchange acima | `os-service.payment-events` |
 
 ### Subir a aplicação
 
@@ -43,38 +46,53 @@ npm run docker:dev
 
 A API estará disponível em `http://localhost:3000`.
 
+### Consumindo eventos de pagamento (RabbitMQ)
+
+Além da API REST, o servidor inicia em background um consumidor RabbitMQ (`RabbitMQPaymentEventConsumer`) que escuta o exchange `payment-events` (routing keys `payment.approved` e `payment.failed`) publicado pelo `fiap-soat-billing-service`. Ao receber um evento, a ordem de serviço correspondente (`serviceOrderId` no payload) tem seu status atualizado automaticamente:
+
+| Evento | Novo status |
+|---|---|
+| `payment.approved` | `Em execução` |
+| `payment.failed` | `Finalizado` |
+| `quotation.rejected` (via REST, `POST /service-orders/:id/events`) | `Finalizado` |
+
+Se o RabbitMQ estiver indisponível na inicialização, a API REST continua no ar normalmente — o consumidor tenta reconectar em background e loga o erro, mas não derruba o processo.
+
 ### Rodar junto com o billing-service
 
-O `os-service` e o `fiap-soat-billing-service` se comunicam via REST (o billing chama `OS_SERVICE_URL` para atualizar o status da OS). Como cada repositório tem seu próprio `docker-compose.yml`, subir os dois separadamente cria duas stacks isoladas em redes Docker diferentes — os containers não conseguem se enxergar por padrão.
+O `os-service` e o `fiap-soat-billing-service` se comunicam via REST (o billing chama `OS_SERVICE_URL` para atualizar o status da OS) e via **RabbitMQ** (o billing publica os eventos `payment.approved`/`payment.failed`, consumidos pelo `execution-service`). O broker RabbitMQ sobe junto com o `docker-compose.dev.yml` deste repositório (`os-service`) e é compartilhado pelos demais serviços. Como cada repositório tem seu próprio `docker-compose`, subir os serviços separadamente cria stacks isoladas em redes Docker diferentes — os containers não conseguem se enxergar por padrão.
 
-Para isso funcionar localmente, os dois compose files compartilham uma rede Docker externa chamada `fiap-net`:
+Para isso funcionar localmente, os compose files compartilham uma rede Docker externa chamada `fiap-net`:
 
 ```bash
 # 1. Criar a rede compartilhada (uma única vez)
 docker network create fiap-net
 
-# 2. Subir o os-service
+# 2. Subir o os-service (inclui o broker RabbitMQ)
 cd fiap-soat-os-service
-docker compose up -d
+npm run docker:dev
 
 # 3. Subir o billing-service (em outro terminal/diretório)
 cd ../fiap-soat-billing-service
 docker compose up -d
 ```
 
-A ordem não é obrigatória, mas subir o `os-service` primeiro evita erros de conexão recusada caso o `billing-service` tente chamá-lo logo na inicialização.
+A ordem importa aqui: suba o `os-service` primeiro, já que é ele quem provê o broker RabbitMQ compartilhado (além de evitar erros de conexão recusada caso o `billing-service` tente chamá-lo via REST logo na inicialização).
 
-No `fiap-soat-billing-service`, a variável `OS_SERVICE_URL` deve apontar para o nome do container do os-service na rede compartilhada, não para `localhost`:
+No `fiap-soat-billing-service`, `OS_SERVICE_URL` e `RABBITMQ_URL` devem apontar para os nomes dos containers do os-service na rede compartilhada, não para `localhost`:
 
 ```
-OS_SERVICE_URL=http://fiap-web:3000
+OS_SERVICE_URL=http://fiap-web-dev:3000
+RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 ```
 
 Para verificar a conectividade entre os containers:
 
 ```bash
-docker exec -it <container-do-billing-app> wget -qO- http://fiap-web:3000/health
+docker exec -it <container-do-billing-app> wget -qO- http://fiap-web-dev:3000/health
 ```
+
+A UI de management do RabbitMQ fica disponível em [http://localhost:15672](http://localhost:15672) (usuário/senha padrão: `guest`/`guest`).
 
 ### Rodar os testes
 

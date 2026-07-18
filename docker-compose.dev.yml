@@ -23,6 +23,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_NAME: ${DB_NAME}
@@ -38,6 +40,9 @@ services:
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY:-}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME:-fiap-web-dev}
       NEW_RELIC_LOG_LEVEL: ${NEW_RELIC_LOG_LEVEL:-info}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-payment-events}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-os-service.payment-events}
     ports:
       - "3000:${APP_PORT:-3000}"
     volumes:
@@ -46,7 +51,25 @@ services:
     networks:
       - default
       - fiap-net
-    
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: fiap-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+      - fiap-net
+
 networks:
   fiap-net:
     external: true

@@ -88,6 +88,35 @@ export class ServiceOrderController {
     return this.serviceOrderUseCase.delete.execute(id);
   }
 
+  private static readonly STATUS_BY_BILLING_EVENT: Record<string, ServiceOrderStatus> = {
+    "quotation.rejected": ServiceOrderStatus.completed,
+    "payment.approved": ServiceOrderStatus.inExecution,
+    "payment.failed": ServiceOrderStatus.completed,
+  };
+
+  async applyBillingEvent(id: string, event?: string): Promise<ServiceOrder> {
+    const newStatus = event
+      ? ServiceOrderController.STATUS_BY_BILLING_EVENT[event]
+      : undefined;
+    if (!newStatus) {
+      throw new Error(`Unknown billing event: ${event}`);
+    }
+
+    const serviceOrder = await this.getById(id);
+    if (!serviceOrder) {
+      throw new Error("Service Order not found");
+    }
+
+    return this.update({
+      id: serviceOrder.id,
+      userId: serviceOrder.user.id,
+      vehicleId: serviceOrder.vehicle.id,
+      partsQuantities: undefined,
+      serviceIds: undefined,
+      status: newStatus,
+    });
+  }
+
   async getAverageServiceTime(): Promise<AverageServiceTimeResult> {
     return this.serviceOrderUseCase.getAverageServiceTime.execute();
   }
