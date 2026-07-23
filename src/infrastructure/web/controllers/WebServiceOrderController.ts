@@ -373,6 +373,10 @@ export class WebServiceOrderController {
         status: ServiceOrderStatus.awaitingApproval,
       });
 
+      await this.serviceOrderController.notifyDiagnosticFinished(
+        updatedServiceOrder,
+      );
+
       res
         .status(200)
         .json(

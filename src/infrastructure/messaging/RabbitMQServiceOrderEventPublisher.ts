@@ -1,6 +1,7 @@
 import amqplib, { Channel } from "amqplib";
 import { randomUUID } from "crypto";
 import type {
+  DiagnosticFinishedEvent,
   IServiceOrderEventPublisher,
   OrderReceivedEvent,
 } from "../../domain/events/IServiceOrderEventPublisher";
@@ -14,6 +15,10 @@ export class RabbitMQServiceOrderEventPublisher implements IServiceOrderEventPub
 
   async publishOrderReceived(event: OrderReceivedEvent): Promise<void> {
     await this.publish("order.received", event);
+  }
+
+  async publishDiagnosticFinished(event: DiagnosticFinishedEvent): Promise<void> {
+    await this.publish("diagnostic.finished", event);
   }
 
   private async publish(routingKey: string, payload: object): Promise<void> {

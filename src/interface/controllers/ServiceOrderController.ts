@@ -11,12 +11,31 @@ import type { IServiceOrderEventPublisher } from "../../domain/events/IServiceOr
 
 export class ServiceOrderController {
   private serviceOrderUseCase: ServiceOrderUseCase;
+  private eventPublisher?: IServiceOrderEventPublisher;
 
   constructor(
     serviceOrderRepository: IServiceOrderRepository,
     eventPublisher?: IServiceOrderEventPublisher,
   ) {
     this.serviceOrderUseCase = new ServiceOrderUseCase(serviceOrderRepository, eventPublisher);
+    this.eventPublisher = eventPublisher;
+  }
+
+  async notifyDiagnosticFinished(serviceOrder: ServiceOrder): Promise<void> {
+    await this.eventPublisher?.publishDiagnosticFinished({
+      serviceOrderId: serviceOrder.id,
+      parts: serviceOrder.parts.map((part) => ({
+        id: part.id,
+        name: part.name,
+        quantity: part.serviceQuantity ?? 1,
+        price: part.price,
+      })),
+      services: serviceOrder.services.map((service) => ({
+        id: service.id,
+        name: service.name,
+        price: service.price,
+      })),
+    });
   }
 
   async create(

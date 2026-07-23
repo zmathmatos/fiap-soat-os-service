@@ -55,6 +55,7 @@ describe("CreateServiceOrderUseCase - order.received publication", () => {
     };
     mockPublisher = {
       publishOrderReceived: jest.fn(),
+      publishDiagnosticFinished: jest.fn(),
     };
     mockServiceOrderRepository.create.mockResolvedValue(mockServiceOrder);
   });

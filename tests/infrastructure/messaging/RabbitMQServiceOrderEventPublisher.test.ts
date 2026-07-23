@@ -55,6 +55,26 @@ describe("RabbitMQServiceOrderEventPublisher", () => {
     expect(body).toEqual({ serviceOrderId: "order-1", serviceOrderNumber: 42 });
   });
 
+  it("publishes diagnostic.finished with parts and services", async () => {
+    const publisher = new RabbitMQServiceOrderEventPublisher();
+
+    await publisher.publishDiagnosticFinished({
+      serviceOrderId: "order-1",
+      parts: [{ id: "p1", name: "Brake pad", quantity: 2, price: 150 }],
+      services: [{ id: "s1", name: "Brake replacement", price: 300 }],
+    });
+
+    expect(mockChannel.publish).toHaveBeenCalledWith(
+      "service-order-events",
+      "diagnostic.finished",
+      expect.any(Buffer),
+      expect.objectContaining({ persistent: true }),
+    );
+    const body = JSON.parse(mockChannel.publish.mock.calls[0][2].toString());
+    expect(body.parts).toHaveLength(1);
+    expect(body.services).toHaveLength(1);
+  });
+
   it("reuses the same connection across publishes", async () => {
     const publisher = new RabbitMQServiceOrderEventPublisher();
 
