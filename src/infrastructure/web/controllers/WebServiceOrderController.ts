@@ -13,6 +13,8 @@ import { ServiceOrderController } from "../../../interface/controllers/ServiceOr
 import { UserController } from "../../../interface/controllers/UserController";
 import { VehicleController } from "../../../interface/controllers/VehicleController";
 import { requiredFields, handleError } from "../utils/handlerHelpers";
+import { RabbitMQServiceOrderEventPublisher } from "../../messaging/RabbitMQServiceOrderEventPublisher";
+import type { IServiceOrderEventPublisher } from "../../../domain/events/IServiceOrderEventPublisher";
 
 export class WebServiceOrderController {
   private readonly serviceOrderController: ServiceOrderController;
@@ -25,9 +27,11 @@ export class WebServiceOrderController {
     userRepository: UserRepository = new UserRepository(),
     vehicleRepository: VehicleRepository = new VehicleRepository(),
     serviceRepository: ServiceRepository = new ServiceRepository(),
+    serviceOrderEventPublisher: IServiceOrderEventPublisher = new RabbitMQServiceOrderEventPublisher(),
   ) {
     this.serviceOrderController = new ServiceOrderController(
       serviceOrderRepository,
+      serviceOrderEventPublisher,
     );
     this.userController = new UserController(userRepository);
     this.vehicleController = new VehicleController(vehicleRepository);

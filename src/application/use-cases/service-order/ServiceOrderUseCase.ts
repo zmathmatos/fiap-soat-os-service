@@ -8,6 +8,7 @@ import { GetServiceOrdersByVehicleIdUseCase } from "./methods/GetServiceOrdersBy
 import { UpdateServiceOrderUseCase } from "./methods/UpdateServiceOrderUseCase";
 import { GetAverageServiceTimeUseCase } from "./methods/GetAverageServiceTimeUseCase";
 import type { IServiceOrderRepository } from "../../../domain/repositories/IServiceOrderRepository";
+import type { IServiceOrderEventPublisher } from "../../../domain/events/IServiceOrderEventPublisher";
 
 export class ServiceOrderUseCase {
   readonly create: CreateServiceOrderUseCase;
@@ -21,9 +22,14 @@ export class ServiceOrderUseCase {
   readonly getAverageServiceTime: GetAverageServiceTimeUseCase;
 
   private serviceOrderRepository: IServiceOrderRepository;
+  private eventPublisher?: IServiceOrderEventPublisher;
 
-  constructor(serviceOrderRepository: IServiceOrderRepository) {
+  constructor(
+    serviceOrderRepository: IServiceOrderRepository,
+    eventPublisher?: IServiceOrderEventPublisher,
+  ) {
     this.serviceOrderRepository = serviceOrderRepository;
+    this.eventPublisher = eventPublisher;
 
     this.create = this.buildCreateServiceOrderUseCase();
     this.delete = this.buildDeleteServiceOrderUseCase();
@@ -37,7 +43,7 @@ export class ServiceOrderUseCase {
   }
 
   buildCreateServiceOrderUseCase(): CreateServiceOrderUseCase {
-    return new CreateServiceOrderUseCase(this.serviceOrderRepository);
+    return new CreateServiceOrderUseCase(this.serviceOrderRepository, this.eventPublisher);
   }
 
   buildDeleteServiceOrderUseCase(): DeleteServiceOrderUseCase {

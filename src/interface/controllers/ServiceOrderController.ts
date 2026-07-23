@@ -7,12 +7,16 @@ import {
   AverageServiceTimeResult,
   IServiceOrderRepository,
 } from "../../domain/repositories/IServiceOrderRepository";
+import type { IServiceOrderEventPublisher } from "../../domain/events/IServiceOrderEventPublisher";
 
 export class ServiceOrderController {
   private serviceOrderUseCase: ServiceOrderUseCase;
 
-  constructor(serviceOrderRepository: IServiceOrderRepository) {
-    this.serviceOrderUseCase = new ServiceOrderUseCase(serviceOrderRepository);
+  constructor(
+    serviceOrderRepository: IServiceOrderRepository,
+    eventPublisher?: IServiceOrderEventPublisher,
+  ) {
+    this.serviceOrderUseCase = new ServiceOrderUseCase(serviceOrderRepository, eventPublisher);
   }
 
   async create(

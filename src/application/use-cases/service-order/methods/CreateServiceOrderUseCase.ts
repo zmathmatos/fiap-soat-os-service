@@ -1,11 +1,17 @@
 import { ServiceOrder } from "../../../../domain/entities/ServiceOrder";
 import type { IServiceOrderRepository } from "../../../../domain/repositories/IServiceOrderRepository";
+import type { IServiceOrderEventPublisher } from "../../../../domain/events/IServiceOrderEventPublisher";
 
 export class CreateServiceOrderUseCase {
   private serviceOrderRepository: IServiceOrderRepository;
+  private eventPublisher?: IServiceOrderEventPublisher;
 
-  constructor(serviceOrderRepository: IServiceOrderRepository) {
+  constructor(
+    serviceOrderRepository: IServiceOrderRepository,
+    eventPublisher?: IServiceOrderEventPublisher,
+  ) {
     this.serviceOrderRepository = serviceOrderRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   async execute(
@@ -22,7 +28,7 @@ export class CreateServiceOrderUseCase {
 
     const serviceOrder = ServiceOrder.create();
 
-    return this.serviceOrderRepository.create(
+    const created = await this.serviceOrderRepository.create(
       serviceOrder,
       orderNumber,
       userId,
@@ -30,5 +36,12 @@ export class CreateServiceOrderUseCase {
       serviceIds,
       partIds
     );
+
+    await this.eventPublisher?.publishOrderReceived({
+      serviceOrderId: created.id,
+      serviceOrderNumber: created.serviceOrderNumber,
+    });
+
+    return created;
   }
 }
