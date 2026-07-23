@@ -143,4 +143,32 @@ export class ServiceOrderController {
   async getAverageServiceTime(): Promise<AverageServiceTimeResult> {
     return this.serviceOrderUseCase.getAverageServiceTime.execute();
   }
+
+  private static readonly STATUS_BY_EXECUTION_EVENT: Record<string, ServiceOrderStatus> = {
+    "execution.finished": ServiceOrderStatus.completed,
+    "execution.failed": ServiceOrderStatus.completed,
+  };
+
+  async applyExecutionEvent(id: string, event?: string): Promise<ServiceOrder> {
+    const newStatus = event
+      ? ServiceOrderController.STATUS_BY_EXECUTION_EVENT[event]
+      : undefined;
+    if (!newStatus) {
+      throw new Error(`Unknown execution event: ${event}`);
+    }
+
+    const serviceOrder = await this.getById(id);
+    if (!serviceOrder) {
+      throw new Error("Service Order not found");
+    }
+
+    return this.update({
+      id: serviceOrder.id,
+      userId: serviceOrder.user.id,
+      vehicleId: serviceOrder.vehicle.id,
+      partsQuantities: undefined,
+      serviceIds: undefined,
+      status: newStatus,
+    });
+  }
 }

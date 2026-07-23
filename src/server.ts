@@ -11,6 +11,7 @@ import app from "./infrastructure/web/app";
 import { initializeDatabase } from "./infrastructure/database/sequelize/init";
 import Logger from "./infrastructure/database/sequelize/utils/Logger";
 import { RabbitMQPaymentEventConsumer } from "./infrastructure/messaging/RabbitMQPaymentEventConsumer";
+import { RabbitMQExecutionEventConsumer } from "./infrastructure/messaging/RabbitMQExecutionEventConsumer";
 import { ServiceOrderController } from "./interface/controllers/ServiceOrderController";
 import { ServiceOrderRepository } from "./infrastructure/repositories/ServiceOrderRepository";
 
@@ -50,23 +51,23 @@ async function waitForDatabase(retries = MAX_RETRIES): Promise<void> {
 // process — the REST API works without RabbitMQ. But there's no retry after
 // giving up, so a broker outage longer than MAX_RETRIES * RETRY_DELAY leaves
 // payment events unconsumed until the service is restarted.
-async function startPaymentEventConsumer(retries = MAX_RETRIES): Promise<void> {
-  const consumer = new RabbitMQPaymentEventConsumer(
-    new ServiceOrderController(new ServiceOrderRepository()),
-  );
-
+async function startEventConsumer(
+  name: string,
+  consumer: { start(): Promise<void> },
+  retries = MAX_RETRIES,
+): Promise<void> {
   for (let i = 1; i <= retries; i++) {
     try {
       await consumer.start();
       return;
     } catch (error) {
-      Logger.error(`RabbitMQ consumer connection attempt ${i}/${retries} failed`, {
+      Logger.error(`RabbitMQ ${name} consumer connection attempt ${i}/${retries} failed`, {
         err: error,
         event: "rabbitmq.consumer.connectFailed",
       });
       if (i === retries) {
         Logger.error(
-          "Failed to start RabbitMQ consumer after maximum retries — payment events will not be processed until the service restarts",
+          `Failed to start RabbitMQ ${name} consumer after maximum retries — its events will not be processed until the service restarts`,
           { event: "rabbitmq.consumer.giveUp" },
         );
         return;
@@ -74,6 +75,12 @@ async function startPaymentEventConsumer(retries = MAX_RETRIES): Promise<void> {
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
     }
   }
+}
+
+function startEventConsumers(): void {
+  const serviceOrderController = new ServiceOrderController(new ServiceOrderRepository());
+  void startEventConsumer("payment", new RabbitMQPaymentEventConsumer(serviceOrderController));
+  void startEventConsumer("execution", new RabbitMQExecutionEventConsumer(serviceOrderController));
 }
 
 async function startServer() {
@@ -87,7 +94,7 @@ async function startServer() {
     });
 
     // Runs in the background — the REST API stays up even if RabbitMQ is unreachable.
-    void startPaymentEventConsumer();
+    startEventConsumers();
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
