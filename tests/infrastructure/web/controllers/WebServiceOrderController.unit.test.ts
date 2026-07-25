@@ -672,71 +672,8 @@ describe("WebServiceOrderController - Error Scenarios", () => {
     });
   });
 
-  // ─── approveQuotation ──────────────────────────────────────────────────────
-
-  describe("approveQuotation", () => {
-    it("should return 404 when service order is not found", async () => {
-      mockRequest.params = { serviceOrderNumber: "1001" };
-      mockSOController.getByServiceOrderNumber.mockResolvedValue(null);
-
-      await webController.approveQuotation(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(responseData.error).toBe("Service Order not found");
-    });
-
-    it("should return 400 when an Error is thrown", async () => {
-      mockRequest.params = { serviceOrderNumber: "1001" };
-      mockSOController.getByServiceOrderNumber.mockRejectedValue(new Error("Query failed"));
-
-      await webController.approveQuotation(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(responseData.error).toBe("Query failed");
-    });
-
-    it("should return 500 when a non-Error is thrown", async () => {
-      mockRequest.params = { serviceOrderNumber: "1001" };
-      mockSOController.getByServiceOrderNumber.mockRejectedValue(null);
-
-      await webController.approveQuotation(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-    });
-  });
-
-  // ─── rejectQuotation ───────────────────────────────────────────────────────
-
-  describe("rejectQuotation", () => {
-    it("should return 404 when service order is not found", async () => {
-      mockRequest.params = { serviceOrderNumber: "1001" };
-      mockSOController.getByServiceOrderNumber.mockResolvedValue(null);
-
-      await webController.rejectQuotation(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(responseData.error).toBe("Service Order not found");
-    });
-
-    it("should return 400 when an Error is thrown", async () => {
-      mockRequest.params = { serviceOrderNumber: "1001" };
-      mockSOController.getByServiceOrderNumber.mockRejectedValue(new Error("Query failed"));
-
-      await webController.rejectQuotation(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(responseData.error).toBe("Query failed");
-    });
-
-    it("should return 500 when a non-Error is thrown", async () => {
-      mockRequest.params = { serviceOrderNumber: "1001" };
-      mockSOController.getByServiceOrderNumber.mockRejectedValue(null);
-
-      await webController.rejectQuotation(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-    });
-  });
+  // approveQuotation/rejectQuotation used to live here; quotation approval now
+  // belongs to fiap-soat-billing-service, so those suites were removed.
 
   // ─── addPartsAndServices ───────────────────────────────────────────────────
 
@@ -940,6 +877,53 @@ describe("WebServiceOrderController - Error Scenarios", () => {
       await webController.getAverageServiceTime(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  // ─── order.received (saga choreography) ────────────────────────────────────
+
+  describe("order.received publishing", () => {
+    let publishOrderReceived: jest.Mock;
+    let controllerWithPublisher: WebServiceOrderController;
+
+    beforeEach(() => {
+      publishOrderReceived = jest.fn().mockResolvedValue(undefined);
+      controllerWithPublisher = new WebServiceOrderController(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { publishOrderReceived },
+      );
+      const instances = MockedServiceOrderController.mock.instances;
+      mockSOController = instances[instances.length - 1] as jest.Mocked<ServiceOrderController>;
+      const userInstances = MockedUserController.mock.instances;
+      mockUserController = userInstances[userInstances.length - 1] as jest.Mocked<UserController>;
+      const vehicleInstances = MockedVehicleController.mock.instances;
+      mockVehicleController = vehicleInstances[vehicleInstances.length - 1] as jest.Mocked<VehicleController>;
+
+      mockRequest.body = { document: "12345678909", licensePlate: "ABC1234" };
+      mockUserController.getByDocument.mockResolvedValue(mockUser as any);
+      mockVehicleController.getVehicleByLicensePlate.mockResolvedValue(mockVehicle as any);
+      mockSOController.create.mockResolvedValue(mockServiceOrder as any);
+    });
+
+    it("publishes order.received after creating the service order", async () => {
+      await controllerWithPublisher.create(mockRequest as Request, mockResponse as Response);
+
+      expect(publishOrderReceived).toHaveBeenCalledWith({
+        serviceOrderId: mockServiceOrder.id,
+        serviceOrderNumber: mockServiceOrder.serviceOrderNumber,
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+    });
+
+    it("still returns 201 when the broker is unreachable", async () => {
+      publishOrderReceived.mockRejectedValue(new Error("ECONNREFUSED"));
+
+      await controllerWithPublisher.create(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
     });
   });
 });
