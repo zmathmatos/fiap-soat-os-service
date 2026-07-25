@@ -27,7 +27,7 @@ It is part of a larger microservices architecture using the **Saga Pattern (Chor
 | Database | PostgreSQL 14 |
 | Authentication | JWT (`jsonwebtoken`) + bcrypt (`bcryptjs`) |
 | Logging | Pino (structured JSON) + Morgan (HTTP) |
-| Messaging | RabbitMQ (`amqplib`) — publishes `order.received`; consumes `payment.*` (billing) and `diagnostic.finished`/`execution.*` (execution) |
+| Messaging | RabbitMQ (`amqplib`) — publishes `order.received` and `quotation.requested`; consumes `payment.*` (billing) and `diagnostic.finished`/`execution.*` (execution) |
 | APM | New Relic (preloaded via `node -r newrelic`) |
 | Build | `esbuild-node-tsc` (targets ES2016) |
 | Containerisation | Docker (multi-stage, non-root `app` user) |
@@ -68,6 +68,8 @@ Choreographed saga — each exchange belongs to the service that publishes on it
 `diagnostic.finished` carries the parts/services diagnosed by `fiap-soat-execution-service`; the handler registers them on the order and moves it to `"Aguardando aprovação"`, which triggers quotation generation in `fiap-soat-billing-service`. The `POST /service-orders/:id/events` REST endpoint is now only used for `quotation.rejected`.
 
 In both consumers, permanent failures (unknown service order, unknown event, malformed payload) are logged and dropped instead of being requeued forever.
+
+This service also **publishes** to RabbitMQ: `RabbitMQQuotationEventPublisher` (`src/infrastructure/messaging/`, exported as a shared singleton) sends a `quotation.requested` event to the `quotation-events` topic exchange whenever a service order transitions to `awaitingApproval` — see `Utils.generateQuotation` (`src/infrastructure/database/sequelize/utils/Utils.ts`), invoked fire-and-forget from the `ServiceOrderModel` `afterUpdate` hook. `fiap-soat-billing-service` consumes it to create the quotation; there is no synchronous REST call for this anymore. The publisher lazily connects and caches its AMQP channel across calls; `server.ts` warms up that connection in the background at startup (same retry/backoff shape as the payment consumer) so broker-down issues show up in the logs early rather than only on the first quotation.
 
 ---
 

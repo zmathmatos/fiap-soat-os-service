@@ -3,7 +3,7 @@ import ServiceOrderModel, {
   ServiceOrderModelPart,
 } from "../models/ServiceOrderModel";
 import Logger from "./Logger";
-import { BillingServiceClient } from "../../../http/BillingServiceClient";
+import { rabbitMQQuotationEventPublisher } from "../../../messaging/RabbitMQQuotationEventPublisher";
 
 class Utils {
   static async generateQuotation(serviceOrderId: string): Promise<void> {
@@ -50,8 +50,7 @@ class Utils {
     }
     const description = descriptionParts.join("; ") || "Serviço de manutenção";
 
-    const billingClient = new BillingServiceClient();
-    await billingClient.createQuotation({
+    await rabbitMQQuotationEventPublisher.publishQuotationRequested({
       serviceOrderId: orderData.id,
       serviceOrderNumber: orderData.serviceOrderNumber,
       customerId: orderData.user.id,
@@ -61,7 +60,7 @@ class Utils {
     });
 
     Logger.log(
-      `Orçamento enviado para o billing service, OS ${orderData.serviceOrderNumber}.`,
+      `Evento quotation.requested publicado, OS ${orderData.serviceOrderNumber}.`,
     );
   }
 

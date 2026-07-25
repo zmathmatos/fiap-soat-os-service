@@ -37,6 +37,7 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 | `RABBITMQ_URL` | Connection string do broker RabbitMQ | `amqp://guest:guest@rabbitmq:5672` |
 | `RABBITMQ_EXCHANGE` | Exchange (topic) onde o billing publica os eventos de pagamento | `payment-events` |
 | `RABBITMQ_QUEUE` | Fila própria deste serviço, ligada ao exchange acima | `os-service.payment-events` |
+| `RABBITMQ_QUOTATION_EXCHANGE` | Exchange (topic) onde este serviço publica `quotation.requested`, consumido pelo billing | `quotation-events` |
 | `RABBITMQ_SERVICE_ORDER_EXCHANGE` | Exchange (topic) onde este serviço publica `order.received` | `service-order-events` |
 | `RABBITMQ_EXECUTION_EXCHANGE` | Exchange (topic) do execution-service | `execution-events` |
 | `RABBITMQ_EXECUTION_QUEUE` | Fila deste serviço ligada ao exchange do execution-service | `os-service.execution-events` |
@@ -72,9 +73,13 @@ A arquitetura usa **Saga Pattern coreografada**: não há orquestrador central. 
 
 Se o RabbitMQ estiver indisponível na inicialização, a API REST continua no ar normalmente — os consumidores tentam reconectar em background e logam o erro, mas não derrubam o processo. A publicação de `order.received` também é *fail-soft*: se o broker estiver fora, a OS é criada mesmo assim e a falha é logada (`rabbitmq.publisher.error`).
 
+### Publicando o pedido de orçamento (RabbitMQ)
+
+Quando uma ordem de serviço muda para o status `Aguardando aprovação`, este serviço publica um evento `quotation.requested` no exchange `quotation-events` (routing key `quotation.requested`), consumido pelo `fiap-soat-billing-service` para gerar o orçamento — não há mais chamada REST síncrona para isso. A publicação é feita por `RabbitMQQuotationEventPublisher` (`src/infrastructure/messaging/`), que mantém um canal AMQP compartilhado (singleton) reaproveitado entre publicações, em vez de reconectar a cada orçamento. Assim como no consumo de eventos de pagamento, uma indisponibilidade do RabbitMQ não derruba a API REST — a próxima tentativa de publicação simplesmente reconecta.
+
 ### Rodar junto com o billing-service
 
-O `os-service` e o `fiap-soat-billing-service` se comunicam via REST (o billing chama `OS_SERVICE_URL` para atualizar o status da OS no caso de `quotation.rejected`) e via **RabbitMQ** (o billing publica `payment.approved`/`payment.failed`/`quotation.rejected`, consumidos por este serviço e pelo `execution-service`). O broker RabbitMQ sobe junto com o `docker-compose.dev.yml` deste repositório (`os-service`) e é compartilhado pelos demais serviços. Como cada repositório tem seu próprio `docker-compose`, subir os serviços separadamente cria stacks isoladas em redes Docker diferentes — os containers não conseguem se enxergar por padrão.
+O `os-service` e o `fiap-soat-billing-service` se comunicam via **RabbitMQ** em ambas as direções (o os-service publica `quotation.requested`; o billing publica `payment.approved`/`payment.failed`/`quotation.rejected`, consumidos por este serviço e pelo `execution-service`) e via REST apenas para o callback de `quotation.rejected` (o billing chama `OS_SERVICE_URL` para atualizar o status da OS). O broker RabbitMQ sobe junto com o `docker-compose.dev.yml` deste repositório (`os-service`) e é compartilhado pelos demais serviços. Como cada repositório tem seu próprio `docker-compose`, subir os serviços separadamente cria stacks isoladas em redes Docker diferentes — os containers não conseguem se enxergar por padrão.
 
 Para isso funcionar localmente, os compose files compartilham uma rede Docker externa chamada `fiap-net`:
 
