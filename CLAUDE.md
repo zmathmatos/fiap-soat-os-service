@@ -12,6 +12,8 @@ This is a Node.js micro-service for a mechanical-shop work-order (OS) system, de
 
 This service does **not** own business logic that belongs to other micro-services (e.g. payments, quotations). Keep all additions scoped to the domains above.
 
+It is part of a larger microservices architecture using the **Saga Pattern (Choreography)** — there is no central orchestrator; this service and `fiap-soat-billing-service`/`fiap-soat-execution-service` publish and react to domain events over RabbitMQ (see [Async Messaging](#async-messaging)) to carry each saga forward.
+
 ---
 
 ## Technology Stack
