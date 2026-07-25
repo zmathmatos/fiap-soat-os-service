@@ -477,4 +477,71 @@ describe("ServiceOrderController", () => {
       expect(mockServiceOrderRepository.update).not.toHaveBeenCalled();
     });
   });
+
+  describe("applyExecutionEvent", () => {
+    it.each([
+      ["diagnostic.finished", ServiceOrderStatus.awaitingApproval],
+      ["execution.finished", ServiceOrderStatus.completed],
+      ["execution.failed", ServiceOrderStatus.completed],
+    ])("maps %s to status %s", async (event, expectedStatus) => {
+      const serviceOrder = makeServiceOrder();
+      mockServiceOrderRepository.findById.mockResolvedValue(serviceOrder);
+      mockServiceOrderRepository.update.mockResolvedValue(
+        makeServiceOrder({ status: expectedStatus }),
+      );
+
+      const result = await serviceOrderController.applyExecutionEvent(ORDER_ID, event);
+
+      expect(result.status).toBe(expectedStatus);
+      expect(mockServiceOrderRepository.update).toHaveBeenCalledWith(
+        ORDER_ID,
+        expect.objectContaining({ status: expectedStatus }),
+        USER_ID,
+        VEHICLE_ID,
+        undefined,
+        undefined,
+      );
+    });
+
+    it("registers the parts and services diagnosed by the execution service", async () => {
+      const serviceOrder = makeServiceOrder();
+      mockServiceOrderRepository.findById.mockResolvedValue(serviceOrder);
+      mockServiceOrderRepository.update.mockResolvedValue(
+        makeServiceOrder({ status: ServiceOrderStatus.awaitingApproval }),
+      );
+
+      await serviceOrderController.applyExecutionEvent(ORDER_ID, "diagnostic.finished", {
+        partsQuantities: [{ partId: PART_ID_1, quantity: 2 }],
+        serviceIds: [SERVICE_ID_1],
+      });
+
+      expect(mockServiceOrderRepository.update).toHaveBeenCalledWith(
+        ORDER_ID,
+        expect.objectContaining({ status: ServiceOrderStatus.awaitingApproval }),
+        USER_ID,
+        VEHICLE_ID,
+        [SERVICE_ID_1],
+        [{ partId: PART_ID_1, quantity: 2 }],
+      );
+    });
+
+    it("throws for an unknown event and does not touch the repository", async () => {
+      await expect(
+        serviceOrderController.applyExecutionEvent(ORDER_ID, "unknown.event"),
+      ).rejects.toThrow("Unknown execution event: unknown.event");
+
+      expect(mockServiceOrderRepository.findById).not.toHaveBeenCalled();
+      expect(mockServiceOrderRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("throws when the service order does not exist", async () => {
+      mockServiceOrderRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        serviceOrderController.applyExecutionEvent("non-existent-id", "execution.finished"),
+      ).rejects.toThrow("Service Order not found");
+
+      expect(mockServiceOrderRepository.update).not.toHaveBeenCalled();
+    });
+  });
 });

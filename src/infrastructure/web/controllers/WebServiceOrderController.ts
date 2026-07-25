@@ -13,19 +13,32 @@ import { ServiceOrderController } from "../../../interface/controllers/ServiceOr
 import { UserController } from "../../../interface/controllers/UserController";
 import { VehicleController } from "../../../interface/controllers/VehicleController";
 import { requiredFields, handleError } from "../utils/handlerHelpers";
+import type { IServiceOrderEventPublisher } from "../../../application/services/IServiceOrderEventPublisher";
+import { RabbitMQServiceOrderEventPublisher } from "../../messaging/RabbitMQServiceOrderEventPublisher";
+import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
+import Logger from "../../database/sequelize/utils/Logger";
+
+// No broker is available under `npm test`, so the default publisher is disabled there —
+// same convention used by Utils.generateQuotation.
+function defaultEventPublisher(): IServiceOrderEventPublisher | null {
+  return process.env.NODE_ENV === "test" ? null : new RabbitMQServiceOrderEventPublisher();
+}
 
 export class WebServiceOrderController {
   private readonly serviceOrderController: ServiceOrderController;
   private readonly userController: UserController;
   private readonly vehicleController: VehicleController;
   private readonly serviceController: ServiceController;
+  private readonly eventPublisher: IServiceOrderEventPublisher | null;
 
   constructor(
     serviceOrderRepository: ServiceOrderRepository = new ServiceOrderRepository(),
     userRepository: UserRepository = new UserRepository(),
     vehicleRepository: VehicleRepository = new VehicleRepository(),
     serviceRepository: ServiceRepository = new ServiceRepository(),
+    eventPublisher: IServiceOrderEventPublisher | null = defaultEventPublisher(),
   ) {
+    this.eventPublisher = eventPublisher;
     this.serviceOrderController = new ServiceOrderController(
       serviceOrderRepository,
     );
@@ -68,9 +81,29 @@ export class WebServiceOrderController {
         serviceIds = services.map((service) => service.id);
       }
       const serviceOrder = await this.serviceOrderController.create(user.id, vehicle.id, serviceIds, partIds);
+      await this.publishOrderReceived(serviceOrder);
       res.status(201).json(HttpPresenters.created(ServiceOrderPresenter.toResponse(serviceOrder)));
     } catch (error) {
       handleError(res, error);
+    }
+  }
+
+  // Starts the choreographed saga: fiap-soat-execution-service consumes this event
+  // and appends the order to the diagnosis queue.
+  private async publishOrderReceived(serviceOrder: ServiceOrder): Promise<void> {
+    if (!this.eventPublisher) return;
+    try {
+      await this.eventPublisher.publishOrderReceived({
+        serviceOrderId: serviceOrder.id,
+        serviceOrderNumber: serviceOrder.serviceOrderNumber,
+      });
+    } catch (error) {
+      // The order is already persisted; failing the request would not undo it.
+      Logger.error("failed to publish order.received", {
+        err: error,
+        event: "rabbitmq.publisher.error",
+        "order.id": serviceOrder.id,
+      });
     }
   }
 
@@ -114,6 +147,7 @@ export class WebServiceOrderController {
       }
 
       const serviceOrder = await this.serviceOrderController.create(user.id, vehicle.id, serviceIds, partIds);
+      await this.publishOrderReceived(serviceOrder);
       res.status(201).json(HttpPresenters.created(ServiceOrderPresenter.toResponse(serviceOrder)));
     } catch (error) {
       handleError(res, error);

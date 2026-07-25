@@ -44,6 +44,9 @@ services:
       RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-payment-events}
       RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-os-service.payment-events}
       RABBITMQ_QUOTATION_EXCHANGE: ${RABBITMQ_QUOTATION_EXCHANGE:-quotation-events}
+      RABBITMQ_SERVICE_ORDER_EXCHANGE: ${RABBITMQ_SERVICE_ORDER_EXCHANGE:-service-order-events}
+      RABBITMQ_EXECUTION_EXCHANGE: ${RABBITMQ_EXECUTION_EXCHANGE:-execution-events}
+      RABBITMQ_EXECUTION_QUEUE: ${RABBITMQ_EXECUTION_QUEUE:-os-service.execution-events}
     ports:
       - "3000:${APP_PORT:-3000}"
     volumes:
