@@ -106,6 +106,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN || '24h' }}
           NEW_RELIC_APP_NAME: ${{ vars.NEW_RELIC_APP_NAME || 'fiap-web-dev' }}
+          BILLING_SERVICE_URL: ${{ vars.BILLING_SERVICE_URL || 'http://billing-service' }}
         run: |
           kubectl -n "$K8S_NAMESPACE" create configmap "${APP_NAME}-config" \
             --from-literal=DB_HOST="$DB_HOST" \
@@ -113,6 +114,7 @@ jobs:
             --from-literal=DB_NAME="$DB_NAME" \
             --from-literal=APP_PORT="3000" \
             --from-literal=NODE_ENV="production" \
+            --from-literal=BILLING_SERVICE_URL="$BILLING_SERVICE_URL" \
             --from-literal=JWT_EXPIRES_IN="$JWT_EXPIRES_IN" \
             --from-literal=LOG_LEVEL="info" \
             --from-literal=NEW_RELIC_ENABLED="true" \
