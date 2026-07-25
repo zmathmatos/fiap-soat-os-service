@@ -131,12 +131,14 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          RABBITMQ_URL: ${{ secrets.RABBITMQ_URL }}
         run: |
           kubectl -n "$K8S_NAMESPACE" create secret generic "${APP_NAME}-secret" \
             --from-literal=DB_USER="$DB_USER" \
             --from-literal=DB_PASSWORD="$DB_PASSWORD" \
             --from-literal=JWT_SECRET="$JWT_SECRET" \
             --from-literal=NEW_RELIC_LICENSE_KEY="$NEW_RELIC_LICENSE_KEY" \
+            --from-literal=RABBITMQ_URL="$RABBITMQ_URL" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Delete previous migration Job (Jobs are immutable)
