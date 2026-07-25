@@ -293,20 +293,6 @@ ServiceOrderModel.afterUpdate(async (serviceOrder, _options) => {
     });
   };
 
-  if (
-    serviceOrder.status === ServiceOrderStatus.awaitingApproval &&
-    process.env.NODE_ENV !== "test"
-  ) {
-    void Utils.generateQuotation(serviceOrder.id).catch(
-      (error) => {
-        Logger.error("quotation generation failed", {
-          err: error,
-          service_order_number: serviceOrder.serviceOrderNumber,
-        });
-      },
-    );
-  }
-
   emit();
 });
 

@@ -15,6 +15,7 @@ import { RabbitMQExecutionEventConsumer } from "./infrastructure/messaging/Rabbi
 import { ServiceOrderController } from "./interface/controllers/ServiceOrderController";
 import { ServiceOrderRepository } from "./infrastructure/repositories/ServiceOrderRepository";
 import { rabbitMQQuotationEventPublisher } from "./infrastructure/messaging/RabbitMQQuotationEventPublisher";
+import { OutboxPublisher } from "./infrastructure/messaging/OutboxPublisher";
 
 process.on("unhandledRejection", (reason) => {
   const err = reason instanceof Error ? reason : new Error(String(reason));
@@ -119,6 +120,7 @@ async function startServer() {
     void startConsumer("payment", new RabbitMQPaymentEventConsumer(serviceOrderController));
     void startConsumer("execution", new RabbitMQExecutionEventConsumer(serviceOrderController));
     void startQuotationEventPublisher();
+    new OutboxPublisher().start();
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

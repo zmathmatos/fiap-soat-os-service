@@ -13,6 +13,7 @@ import {
   IServiceOrderRepository,
 } from "../../domain/repositories/IServiceOrderRepository";
 import { sequelize } from "../database/sequelize/init";
+import { insertOutboxEvent } from "../database/sequelize/models/OutboxEventModel";
 
 export class ServiceOrderRepository implements IServiceOrderRepository {
   async create(
@@ -238,6 +239,10 @@ export class ServiceOrderRepository implements IServiceOrderRepository {
           }
         }
         throw error;
+      }
+
+      if (serviceOrder.status === ServiceOrderStatus.awaitingApproval) {
+        await insertOutboxEvent("quotation.requested", { serviceOrderId: id }, t);
       }
 
       if (serviceIds && serviceIds.length > 0) {

@@ -5,7 +5,7 @@ import Logger from "../database/sequelize/utils/Logger";
 const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
 const EXCHANGE = process.env.RABBITMQ_EXCHANGE || "payment-events";
 const QUEUE = process.env.RABBITMQ_QUEUE || "os-service.payment-events";
-const ROUTING_KEYS = ["payment.approved", "payment.failed"];
+const ROUTING_KEYS = ["payment.approved", "payment.failed", "quotation.rejected"];
 
 type PaymentEventPayload = { serviceOrderId?: string };
 
