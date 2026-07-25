@@ -106,8 +106,12 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN || '24h' }}
           NEW_RELIC_APP_NAME: ${{ vars.NEW_RELIC_APP_NAME || 'fiap-web-dev' }}
-          BILLING_SERVICE_URL: ${{ vars.BILLING_SERVICE_URL || 'http://billing-service' }}
+          BILLING_SERVICE_URL: ${{ vars.BILLING_SERVICE_URL }}
         run: |
+          if [ -z "$BILLING_SERVICE_URL" ]; then
+            echo "::error::BILLING_SERVICE_URL repository variable is not set. Quotation generation would silently fall back to localhost."
+            exit 1
+          fi
           kubectl -n "$K8S_NAMESPACE" create configmap "${APP_NAME}-config" \
             --from-literal=DB_HOST="$DB_HOST" \
             --from-literal=DB_PORT="$DB_PORT" \
