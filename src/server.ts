@@ -13,6 +13,7 @@ import Logger from "./infrastructure/database/sequelize/utils/Logger";
 import { RabbitMQPaymentEventConsumer } from "./infrastructure/messaging/RabbitMQPaymentEventConsumer";
 import { ServiceOrderController } from "./interface/controllers/ServiceOrderController";
 import { ServiceOrderRepository } from "./infrastructure/repositories/ServiceOrderRepository";
+import { rabbitMQQuotationEventPublisher } from "./infrastructure/messaging/RabbitMQQuotationEventPublisher";
 
 process.on("unhandledRejection", (reason) => {
   const err = reason instanceof Error ? reason : new Error(String(reason));
@@ -76,6 +77,32 @@ async function startPaymentEventConsumer(retries = MAX_RETRIES): Promise<void> {
   }
 }
 
+// Fails soft, same shape as startPaymentEventConsumer: warms up the quotation publisher's
+// AMQP channel so a broker-down state surfaces in the startup logs instead of silently on
+// the first quotation. Giving up after MAX_RETRIES just means the first publish attempt
+// will pay the (re)connect cost and fail/retry on its own — it does not disable publishing.
+async function startQuotationEventPublisher(retries = MAX_RETRIES): Promise<void> {
+  for (let i = 1; i <= retries; i++) {
+    try {
+      await rabbitMQQuotationEventPublisher.connect();
+      return;
+    } catch (error) {
+      Logger.error(`RabbitMQ quotation publisher connection attempt ${i}/${retries} failed`, {
+        err: error,
+        event: "rabbitmq.publisher.connectFailed",
+      });
+      if (i === retries) {
+        Logger.error(
+          "Failed to warm up RabbitMQ quotation publisher after maximum retries — the next quotation will retry the connection",
+          { event: "rabbitmq.publisher.giveUp" },
+        );
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+    }
+  }
+}
+
 async function startServer() {
   try {
     await waitForDatabase();
@@ -88,6 +115,7 @@ async function startServer() {
 
     // Runs in the background — the REST API stays up even if RabbitMQ is unreachable.
     void startPaymentEventConsumer();
+    void startQuotationEventPublisher();
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

@@ -27,7 +27,7 @@ It is part of a larger microservices architecture using the **Saga Pattern (Chor
 | Database | PostgreSQL 14 |
 | Authentication | JWT (`jsonwebtoken`) + bcrypt (`bcryptjs`) |
 | Logging | Pino (structured JSON) + Morgan (HTTP) |
-| Messaging | RabbitMQ (`amqplib`) — consumes `payment.approved`/`payment.failed` from `fiap-soat-billing-service` |
+| Messaging | RabbitMQ (`amqplib`) — consumes `payment.approved`/`payment.failed`, publishes `quotation.requested` to `fiap-soat-billing-service` |
 | APM | New Relic (preloaded via `node -r newrelic`) |
 | Build | `esbuild-node-tsc` (targets ES2016) |
 | Containerisation | Docker (multi-stage, non-root `app` user) |
@@ -55,6 +55,8 @@ Dependencies always point inward: `infrastructure` → `application` → `domain
 ## Async Messaging
 
 This service reacts to billing events **exclusively via RabbitMQ** — there is no synchronous REST push from `fiap-soat-billing-service` for payment outcomes anymore. `RabbitMQPaymentEventConsumer` (`src/infrastructure/messaging/`) binds a durable queue to the `payment-events` topic exchange (routing keys `payment.approved`, `payment.failed`) and calls `ServiceOrderController.applyBillingEvent(serviceOrderId, event)` — the same status-mapping logic used by the `POST /service-orders/:id/events` REST endpoint, which is now only used for `quotation.rejected`. The consumer starts in the background in `server.ts` and retries the connection on failure without blocking the HTTP server; permanent failures (unknown service order, unknown event, malformed payload) are logged and dropped instead of being requeued forever.
+
+This service also **publishes** to RabbitMQ: `RabbitMQQuotationEventPublisher` (`src/infrastructure/messaging/`, exported as a shared singleton) sends a `quotation.requested` event to the `quotation-events` topic exchange whenever a service order transitions to `awaitingApproval` — see `Utils.generateQuotation` (`src/infrastructure/database/sequelize/utils/Utils.ts`), invoked fire-and-forget from the `ServiceOrderModel` `afterUpdate` hook. `fiap-soat-billing-service` consumes it to create the quotation; there is no synchronous REST call for this anymore. The publisher lazily connects and caches its AMQP channel across calls; `server.ts` warms up that connection in the background at startup (same retry/backoff shape as the payment consumer) so broker-down issues show up in the logs early rather than only on the first quotation.
 
 ---
 
