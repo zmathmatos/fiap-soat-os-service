@@ -117,6 +117,44 @@ export class ServiceOrderController {
     });
   }
 
+  // Events published by fiap-soat-execution-service, which owns the diagnosis and
+  // repair steps of the choreographed saga.
+  private static readonly STATUS_BY_EXECUTION_EVENT: Record<string, ServiceOrderStatus> = {
+    "diagnostic.finished": ServiceOrderStatus.awaitingApproval,
+    "execution.finished": ServiceOrderStatus.completed,
+    "execution.failed": ServiceOrderStatus.completed,
+  };
+
+  async applyExecutionEvent(
+    id: string,
+    event?: string,
+    diagnosis?: {
+      partsQuantities: Array<{ partId: string; quantity: number }>;
+      serviceIds: string[];
+    },
+  ): Promise<ServiceOrder> {
+    const newStatus = event
+      ? ServiceOrderController.STATUS_BY_EXECUTION_EVENT[event]
+      : undefined;
+    if (!newStatus) {
+      throw new Error(`Unknown execution event: ${event}`);
+    }
+
+    const serviceOrder = await this.getById(id);
+    if (!serviceOrder) {
+      throw new Error("Service Order not found");
+    }
+
+    return this.update({
+      id: serviceOrder.id,
+      userId: serviceOrder.user.id,
+      vehicleId: serviceOrder.vehicle.id,
+      partsQuantities: diagnosis?.partsQuantities,
+      serviceIds: diagnosis?.serviceIds,
+      status: newStatus,
+    });
+  }
+
   async getAverageServiceTime(): Promise<AverageServiceTimeResult> {
     return this.serviceOrderUseCase.getAverageServiceTime.execute();
   }
