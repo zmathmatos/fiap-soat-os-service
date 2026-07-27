@@ -1,14 +1,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: fiap-soat-tech-challenge-app
+  name: os-service
   labels:
-    app: fiap-soat-tech-challenge-app
+    app: os-service
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: fiap-soat-tech-challenge-app
+    name: os-service
   minReplicas: 2
   maxReplicas: 6
   metrics:

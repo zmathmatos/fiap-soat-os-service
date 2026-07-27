@@ -56,7 +56,7 @@ describe("OutboxPublisher", () => {
 
   it("starts polling on start()", async () => {
     publisher.start();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve(); // flush microtasks
     expect(mockFindAll).toHaveBeenCalledTimes(1);
   });
@@ -66,7 +66,7 @@ describe("OutboxPublisher", () => {
     mockFindAll.mockResolvedValueOnce([event as any]);
 
     publisher.start();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve();
     await Promise.resolve();
 
@@ -82,7 +82,7 @@ describe("OutboxPublisher", () => {
     mockGenerateQuotation.mockRejectedValueOnce(new Error("broker down"));
 
     publisher.start();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve();
     await Promise.resolve();
 
@@ -94,7 +94,7 @@ describe("OutboxPublisher", () => {
     mockFindAll.mockResolvedValueOnce([event as any]);
 
     publisher.start();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve();
     await Promise.resolve();
 
@@ -112,9 +112,9 @@ describe("OutboxPublisher", () => {
       .mockResolvedValue([]);
 
     publisher.start();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve();
 
     expect(mockFindAll).toHaveBeenCalledTimes(2);
@@ -123,7 +123,7 @@ describe("OutboxPublisher", () => {
   it("stops polling after stop()", async () => {
     publisher.start();
     publisher.stop();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     await Promise.resolve();
 
     expect(mockFindAll).not.toHaveBeenCalled();

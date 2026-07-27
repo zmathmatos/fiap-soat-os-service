@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fiap-soat-tech-challenge-app
+  name: os-service
   labels:
-    app: fiap-soat-tech-challenge-app
+    app: os-service
 spec:
   replicas: 2
   revisionHistoryLimit: 3
@@ -14,11 +14,11 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: fiap-soat-tech-challenge-app
+      app: os-service
   template:
     metadata:
       labels:
-        app: fiap-soat-tech-challenge-app
+        app: os-service
       annotations:
         deploy/timestamp: "${GITHUB_SHA}"
     spec:
@@ -33,9 +33,9 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: fiap-soat-tech-challenge-app-config
+                name: os-service-config
             - secretRef:
-                name: fiap-soat-tech-challenge-app-secret
+                name: os-service-secret
           readinessProbe:
             httpGet:
               path: /health/ready

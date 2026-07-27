@@ -1,4 +1,7 @@
-# FIAP SOAT Tech Challenge - App
+# FIAP SOAT Tech Challenge - OS Service
+
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-os-service&metric=alert_status)](https://sonarcloud.io/summary/overall?id=zmathmatos_fiap-soat-os-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-os-service&metric=coverage)](https://sonarcloud.io/component_measures?id=zmathmatos_fiap-soat-os-service&metric=coverage)
 
 API REST para gerenciamento de ordens de serviço em oficinas mecânicas.
 Implementada com Node.js, Express, TypeScript, PostgreSQL e Sequelize.
@@ -7,10 +10,12 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 
 | Repositório | Conteúdo |
 |---|---|
-| **[fiap-soat-tech-challenge-app](https://github.com/zmathmatos/fiap-soat-tech-challenge-app)** | ← Este repo — Código da aplicação |
-| [fiap-soat-tech-challenge-infra-db](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | Infraestrutura do banco de dados (RDS PostgreSQL) via Terraform |
+| **fiap-soat-os-service** | ← Este repo — Ordens de serviço e cadastros (usuários, veículos, peças, serviços) |
+| [fiap-soat-billing-service](https://github.com/zmathmatos/fiap-soat-billing-service) | Orçamento e pagamento (Mercado Pago) |
+| [fiap-soat-execution-service](https://github.com/zmathmatos/fiap-soat-execution-service) | Filas de diagnóstico e execução |
+| [fiap-soat-tech-challenge-infra-db](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | Infraestrutura (EKS, RDS, RabbitMQ, MongoDB) via Terraform |
 
-> OBSERVAÇÃO: Devido à questão de limitação de créditos do AWS Academy, teremos o banco de dados provisionado pelo repositório `fiap-soat-tech-challenge-infra-db` e a isolamento dos bancos dos microsserviços será lógico. Mas estamos cientes de que em uma aplicação real cada serviço possui seu próprio banco.
+> OBSERVAÇÃO: Devido à limitação de créditos do AWS Academy, os serviços SQL compartilham uma instância RDS, cada um com schema e role de login próprios — sem permissão cruzada entre eles. A decisão está documentada em detalhe no [repositório de infraestrutura](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db#️-decisão-de-arquitetura-banco-único-com-isolamento-lógico-por-schema). Estamos cientes de que numa aplicação real cada serviço teria sua própria instância.
 
 ## Desenvolvimento local
 
@@ -157,14 +162,14 @@ Em K8s, essas envs vêm do `Secret` provisionado pelo módulo de observabilidade
 ## CI/CD
 
 ### CI (`.github/workflows/ci.yml`)
-Roda em `push`/`pull_request` para `master` e `develop`:
+Roda em `push`/`pull_request` para `main` e `develop`:
 
 1. **lint-and-test** — testes com PostgreSQL
-2. **sonarqube** — análise SonarCloud (somente push em `master`/`develop`)
+2. **sonarqube** — análise SonarCloud (somente push em `main`/`develop`)
 3. **build** — build TypeScript + upload de artifact
 
 ### CD (`.github/workflows/cd.yml`)
-Roda automaticamente em `push` para `master` (produção) e `develop` (homologação), com fallback manual via `workflow_dispatch`:
+Roda automaticamente em `push` para `main` (produção) e `develop` (homologação), com fallback manual via `workflow_dispatch`:
 
 1. **build-and-push** — build da imagem Docker e push para Amazon ECR (tags `<sha>` e `latest`)
 2. **deploy** — `aws eks update-kubeconfig`, aplica ConfigMap/Secret a partir de GitHub Secrets, aplica manifests em `k8s/`, roda o Job de migração e aguarda rollout do Deployment
@@ -177,7 +182,7 @@ Roda automaticamente em `push` para `master` (produção) e `develop` (homologa�
 | `AWS_SECRET_ACCESS_KEY` | Credencial AWS Academy |
 | `AWS_SESSION_TOKEN` | Token de sessão (obrigatório no AWS Academy) |
 | `AWS_REGION` | Região AWS (ex.: `us-east-1`) |
-| `ECR_REPOSITORY` | Nome do repositório ECR (ex.: `fiap-soat-tech-challenge-app`) |
+| `ECR_REPOSITORY` | Nome do repositório ECR (ex.: `os-service`) |
 | `EKS_CLUSTER_NAME` | Nome do cluster EKS provisionado pelo repo de infra |
 | `DB_HOST` | Endpoint do RDS (output do repo `infra-db`) |
 | `DB_PORT` | Porta do RDS (ex.: `5432`) |
@@ -205,7 +210,7 @@ Roda automaticamente em `push` para `master` (produção) e `develop` (homologa�
 | `03-service.yaml` | `Service` tipo `LoadBalancer` (NLB AWS) |
 | `04-hpa.yaml` | `HorizontalPodAutoscaler` (CPU 70% / mem 80%, 2–6 réplicas) |
 
-`ConfigMap` (`fiap-soat-tech-challenge-app-config`) e `Secret` (`fiap-soat-tech-challenge-app-secret`) são criados no pipeline a partir dos GitHub Secrets — nunca commitados.
+`ConfigMap` (`os-service-config`) e `Secret` (`os-service-secret`) são criados no pipeline a partir dos GitHub Secrets — nunca commitados.
 
 A placeholder `${IMAGE_URI}` nos manifests é substituída via `envsubst` no job de deploy.
 
