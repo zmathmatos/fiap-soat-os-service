@@ -1,7 +1,7 @@
 # FIAP SOAT Tech Challenge - App
 
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-tech-challenge-app2&metric=alert_status)](https://sonarcloud.io/summary/overall?id=zmathmatos_fiap-soat-tech-challenge-app2)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-tech-challenge-app2&metric=coverage)](https://sonarcloud.io/component_measures?id=zmathmatos_fiap-soat-tech-challenge-app2&metric=coverage)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-os-service&metric=alert_status)](https://sonarcloud.io/summary/overall?id=zmathmatos_fiap-soat-os-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-os-service&metric=coverage)](https://sonarcloud.io/component_measures?id=zmathmatos_fiap-soat-os-service&metric=coverage)
 
 API REST para gerenciamento de ordens de serviço em oficinas mecânicas.
 Implementada com Node.js, Express, TypeScript, PostgreSQL e Sequelize.
@@ -10,10 +10,12 @@ Este repositório faz parte de uma arquitetura com 4 repositórios separados:
 
 | Repositório | Conteúdo |
 |---|---|
-| **[fiap-soat-tech-challenge-app](https://github.com/zmathmatos/fiap-soat-tech-challenge-app)** | ← Este repo — Código da aplicação |
-| [fiap-soat-tech-challenge-infra-db](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | Infraestrutura do banco de dados (RDS PostgreSQL) via Terraform |
+| **fiap-soat-os-service** | ← Este repo — Ordens de serviço e cadastros (usuários, veículos, peças, serviços) |
+| [fiap-soat-billing-service](https://github.com/zmathmatos/fiap-soat-billing-service) | Orçamento e pagamento (Mercado Pago) |
+| [fiap-soat-execution-service](https://github.com/zmathmatos/fiap-soat-execution-service) | Filas de diagnóstico e execução |
+| [fiap-soat-tech-challenge-infra-db](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db) | Infraestrutura (EKS, RDS, RabbitMQ, MongoDB) via Terraform |
 
-> OBSERVAÇÃO: Devido à questão de limitação de créditos do AWS Academy, teremos o banco de dados provisionado pelo repositório `fiap-soat-tech-challenge-infra-db` e a isolamento dos bancos dos microsserviços será lógico. Mas estamos cientes de que em uma aplicação real cada serviço possui seu próprio banco.
+> OBSERVAÇÃO: Devido à limitação de créditos do AWS Academy, os serviços SQL compartilham uma instância RDS, cada um com schema e role de login próprios — sem permissão cruzada entre eles. A decisão está documentada em detalhe no [repositório de infraestrutura](https://github.com/zmathmatos/fiap-soat-tech-challenge-infra-db#️-decisão-de-arquitetura-banco-único-com-isolamento-lógico-por-schema). Estamos cientes de que numa aplicação real cada serviço teria sua própria instância.
 
 ## Desenvolvimento local
 
