@@ -1,13 +1,13 @@
 name: CD - Build, Push to ECR and Deploy to EKS
 
-# Auto-deploys on push to master (production) and develop (homologation).
+# Auto-deploys on push to main (production) and develop (homologation).
 # workflow_dispatch kept as a manual fallback for ad-hoc runs.
 # Tag the commit message with "[skip ci]" to skip the deploy.
 
 on:
   push:
     branches:
-      - master
+      - main
       - develop
     paths-ignore:
       - "**/*.md"
