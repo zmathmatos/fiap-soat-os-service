@@ -3,7 +3,7 @@ import { OutboxEventModel } from "../database/sequelize/models/OutboxEventModel"
 import Utils from "../database/sequelize/utils/Utils";
 import Logger from "../database/sequelize/utils/Logger";
 
-const POLL_INTERVAL_MS = 5000;
+const POLL_INTERVAL_MS = Number(process.env.OUTBOX_POLL_INTERVAL_MS ?? 1000);
 const BATCH_SIZE = 10;
 
 export class OutboxPublisher {
