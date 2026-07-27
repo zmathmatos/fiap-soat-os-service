@@ -19,8 +19,8 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
-  K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE || 'fiap-tech-challenge' }}
-  APP_NAME: fiap-soat-tech-challenge-app
+  K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE || 'fiap-soat' }}
+  APP_NAME: os-service
 
 jobs:
   build-and-push:
@@ -105,7 +105,7 @@ jobs:
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
           JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN || '24h' }}
-          NEW_RELIC_APP_NAME: ${{ vars.NEW_RELIC_APP_NAME || 'fiap-web-dev' }}
+          NEW_RELIC_APP_NAME: ${{ vars.NEW_RELIC_APP_NAME || 'fiap-soat-os-service' }}
         run: |
           kubectl -n "$K8S_NAMESPACE" create configmap "${APP_NAME}-config" \
             --from-literal=DB_HOST="$DB_HOST" \

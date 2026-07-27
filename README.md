@@ -1,4 +1,4 @@
-# FIAP SOAT Tech Challenge - App
+# FIAP SOAT Tech Challenge - OS Service
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-os-service&metric=alert_status)](https://sonarcloud.io/summary/overall?id=zmathmatos_fiap-soat-os-service)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-os-service&metric=coverage)](https://sonarcloud.io/component_measures?id=zmathmatos_fiap-soat-os-service&metric=coverage)
@@ -182,7 +182,7 @@ Roda automaticamente em `push` para `main` (produção) e `develop` (homologaç�
 | `AWS_SECRET_ACCESS_KEY` | Credencial AWS Academy |
 | `AWS_SESSION_TOKEN` | Token de sessão (obrigatório no AWS Academy) |
 | `AWS_REGION` | Região AWS (ex.: `us-east-1`) |
-| `ECR_REPOSITORY` | Nome do repositório ECR (ex.: `fiap-soat-tech-challenge-app`) |
+| `ECR_REPOSITORY` | Nome do repositório ECR (ex.: `os-service`) |
 | `EKS_CLUSTER_NAME` | Nome do cluster EKS provisionado pelo repo de infra |
 | `DB_HOST` | Endpoint do RDS (output do repo `infra-db`) |
 | `DB_PORT` | Porta do RDS (ex.: `5432`) |
@@ -210,7 +210,7 @@ Roda automaticamente em `push` para `main` (produção) e `develop` (homologaç�
 | `03-service.yaml` | `Service` tipo `LoadBalancer` (NLB AWS) |
 | `04-hpa.yaml` | `HorizontalPodAutoscaler` (CPU 70% / mem 80%, 2–6 réplicas) |
 
-`ConfigMap` (`fiap-soat-tech-challenge-app-config`) e `Secret` (`fiap-soat-tech-challenge-app-secret`) são criados no pipeline a partir dos GitHub Secrets — nunca commitados.
+`ConfigMap` (`os-service-config`) e `Secret` (`os-service-secret`) são criados no pipeline a partir dos GitHub Secrets — nunca commitados.
 
 A placeholder `${IMAGE_URI}` nos manifests é substituída via `envsubst` no job de deploy.
 
