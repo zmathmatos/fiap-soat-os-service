@@ -1,5 +1,8 @@
 # FIAP SOAT Tech Challenge - App
 
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-tech-challenge-app2&metric=alert_status)](https://sonarcloud.io/summary/overall?id=zmathmatos_fiap-soat-tech-challenge-app2)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=zmathmatos_fiap-soat-tech-challenge-app2&metric=coverage)](https://sonarcloud.io/component_measures?id=zmathmatos_fiap-soat-tech-challenge-app2&metric=coverage)
+
 API REST para gerenciamento de ordens de serviço em oficinas mecânicas.
 Implementada com Node.js, Express, TypeScript, PostgreSQL e Sequelize.
 
@@ -157,14 +160,14 @@ Em K8s, essas envs vêm do `Secret` provisionado pelo módulo de observabilidade
 ## CI/CD
 
 ### CI (`.github/workflows/ci.yml`)
-Roda em `push`/`pull_request` para `master` e `develop`:
+Roda em `push`/`pull_request` para `main` e `develop`:
 
 1. **lint-and-test** — testes com PostgreSQL
-2. **sonarqube** — análise SonarCloud (somente push em `master`/`develop`)
+2. **sonarqube** — análise SonarCloud (somente push em `main`/`develop`)
 3. **build** — build TypeScript + upload de artifact
 
 ### CD (`.github/workflows/cd.yml`)
-Roda automaticamente em `push` para `master` (produção) e `develop` (homologação), com fallback manual via `workflow_dispatch`:
+Roda automaticamente em `push` para `main` (produção) e `develop` (homologação), com fallback manual via `workflow_dispatch`:
 
 1. **build-and-push** — build da imagem Docker e push para Amazon ECR (tags `<sha>` e `latest`)
 2. **deploy** — `aws eks update-kubeconfig`, aplica ConfigMap/Secret a partir de GitHub Secrets, aplica manifests em `k8s/`, roda o Job de migração e aguarda rollout do Deployment
