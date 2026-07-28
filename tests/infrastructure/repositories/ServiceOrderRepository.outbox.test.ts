@@ -40,6 +40,14 @@ jest.mock("../../../src/infrastructure/database/sequelize/models/ServiceOrderMod
   };
 });
 
+jest.mock("../../../src/infrastructure/database/sequelize/models/PartModel", () => ({
+  PartModel: { findAll: jest.fn<() => Promise<[]>>().mockResolvedValue([]) },
+}));
+
+jest.mock("../../../src/infrastructure/database/sequelize/models/ServiceModel", () => ({
+  ServiceModel: { findAll: jest.fn<() => Promise<[]>>().mockResolvedValue([]) },
+}));
+
 jest.mock("../../../src/infrastructure/database/sequelize/init", () => ({
   sequelize: {
     transaction: jest.fn(<T>(fn: (t: unknown) => Promise<T>) => fn({})),
