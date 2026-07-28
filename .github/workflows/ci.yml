@@ -59,6 +59,9 @@ jobs:
           JWT_SECRET: test-jwt-secret-key
           JWT_EXPIRES_IN: 24h
 
+      - name: Run BDD (Cucumber)
+        run: npm run test:bdd
+
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
