@@ -1,8 +1,6 @@
-import amqplib, { Channel, ConsumeMessage } from "amqplib";
 import { ServiceOrderController } from "../../interface/controllers/ServiceOrderController";
-import Logger from "../database/sequelize/utils/Logger";
+import { RabbitMQEventConsumer } from "./RabbitMQEventConsumer";
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
 const EXCHANGE = process.env.RABBITMQ_EXECUTION_EXCHANGE || "execution-events";
 const QUEUE = process.env.RABBITMQ_EXECUTION_QUEUE || "os-service.execution-events";
 const ROUTING_KEYS = ["diagnostic.finished", "execution.finished", "execution.failed"];
@@ -17,64 +15,26 @@ type ExecutionEventPayload = {
 
 const PERMANENT_FAILURE = /not found|Unknown execution event|Missing serviceOrderId/i;
 
-export class RabbitMQExecutionEventConsumer {
-  private channel: Channel | null = null;
-
-  constructor(private readonly serviceOrderController: ServiceOrderController) {}
-
-  async start(): Promise<void> {
-    const connection = await amqplib.connect(RABBITMQ_URL);
-    const channel = await connection.createChannel();
-    this.channel = channel;
-
-    await channel.assertExchange(EXCHANGE, "topic", { durable: true });
-    await channel.assertQueue(QUEUE, { durable: true });
-    for (const routingKey of ROUTING_KEYS) {
-      await channel.bindQueue(QUEUE, EXCHANGE, routingKey);
-    }
-    await channel.prefetch(10);
-
-    await channel.consume(QUEUE, (message) => {
-      if (!message) return;
-      void this.handleMessage(message);
-    });
-
-    Logger.info(`RabbitMQ consumer listening on queue "${QUEUE}"`, {
-      event: "rabbitmq.consumer.started",
+export class RabbitMQExecutionEventConsumer extends RabbitMQEventConsumer<ExecutionEventPayload> {
+  constructor(private readonly serviceOrderController: ServiceOrderController) {
+    super({
+      exchange: EXCHANGE,
+      queue: QUEUE,
+      routingKeys: ROUTING_KEYS,
+      permanentFailure: PERMANENT_FAILURE,
     });
   }
 
-  async stop(): Promise<void> {
-    await this.channel?.close();
-    this.channel = null;
-  }
-
-  private async handleMessage(message: ConsumeMessage): Promise<void> {
-    const routingKey = message.fields.routingKey;
-    const channel = this.channel;
-    if (!channel) return;
-
-    try {
-      const payload = JSON.parse(message.content.toString()) as ExecutionEventPayload;
-      if (!payload.serviceOrderId) {
-        throw new Error(`Missing serviceOrderId in ${routingKey} event`);
-      }
-
-      await this.serviceOrderController.applyExecutionEvent(
-        payload.serviceOrderId,
-        routingKey,
-        routingKey === "diagnostic.finished" ? toDiagnosis(payload) : undefined,
-      );
-      channel.ack(message);
-    } catch (error) {
-      const isPermanentFailure = error instanceof Error && PERMANENT_FAILURE.test(error.message);
-      Logger.error(`Failed to process "${routingKey}" event from RabbitMQ`, {
-        err: error,
-        event: "rabbitmq.consumer.error",
-      });
-      // Permanent failures (bad payload, unknown order) would just loop forever on requeue.
-      channel.nack(message, false, !isPermanentFailure);
-    }
+  protected async applyEvent(
+    serviceOrderId: string,
+    routingKey: string,
+    payload: ExecutionEventPayload,
+  ): Promise<void> {
+    await this.serviceOrderController.applyExecutionEvent(
+      serviceOrderId,
+      routingKey,
+      routingKey === "diagnostic.finished" ? toDiagnosis(payload) : undefined,
+    );
   }
 }
 
