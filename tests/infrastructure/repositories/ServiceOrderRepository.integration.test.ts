@@ -1435,4 +1435,86 @@ describe("ServiceOrderRepository Integration Tests", () => {
       expect(decimalPlaces).toBeLessThanOrEqual(2);
     });
   });
+
+  describe("update with a diagnosis referencing unknown catalog ids", () => {
+    const UNKNOWN_PART_ID = "11111111-aaaa-4aaa-8aaa-111111111111";
+    const UNKNOWN_SERVICE_ID = "22222222-bbbb-4bbb-8bbb-222222222222";
+
+    const createReceivedOrder = async () =>
+      serviceOrderRepository.create(
+        {
+          user: { id: userId },
+          vehicle: { id: vehicleId },
+          parts: [],
+          services: [],
+          status: ServiceOrderStatus.received,
+        } as any,
+        1,
+        userId,
+        vehicleId,
+      );
+
+    it("still moves the order to awaitingApproval when every id is unknown", async () => {
+      const created = await createReceivedOrder();
+
+      const updated = await serviceOrderRepository.update(
+        created.id,
+        { ...created, status: ServiceOrderStatus.awaitingApproval } as ServiceOrder,
+        userId,
+        vehicleId,
+        [UNKNOWN_SERVICE_ID],
+        [{ partId: UNKNOWN_PART_ID, quantity: 2 }],
+      );
+
+      expect(updated.status).toBe(ServiceOrderStatus.awaitingApproval);
+
+      const saved = await ServiceOrderModel.findByPk(created.id);
+      expect(saved?.status).toBe(ServiceOrderStatus.awaitingApproval);
+    });
+
+    it("links the known ids and drops only the unknown ones", async () => {
+      const created = await createReceivedOrder();
+
+      await serviceOrderRepository.update(
+        created.id,
+        { ...created, status: ServiceOrderStatus.awaitingApproval } as ServiceOrder,
+        userId,
+        vehicleId,
+        [serviceId, UNKNOWN_SERVICE_ID],
+        [
+          { partId, quantity: 3 },
+          { partId: UNKNOWN_PART_ID, quantity: 2 },
+        ],
+      );
+
+      const linkedServices = await ServiceOrderModelService.findAll({
+        where: { serviceOrderId: created.id },
+      });
+      const linkedParts = await ServiceOrderModelPart.findAll({
+        where: { serviceOrderId: created.id },
+      });
+
+      expect(linkedServices.map((s) => (s as any).serviceId)).toEqual([serviceId]);
+      expect(linkedParts.map((p) => (p as any).partId)).toEqual([partId]);
+      expect(linkedParts[0].quantity).toBe(3);
+    });
+
+    it("keeps emitting the quotation.requested outbox event", async () => {
+      const created = await createReceivedOrder();
+
+      await serviceOrderRepository.update(
+        created.id,
+        { ...created, status: ServiceOrderStatus.awaitingApproval } as ServiceOrder,
+        userId,
+        vehicleId,
+        [UNKNOWN_SERVICE_ID],
+        [{ partId: UNKNOWN_PART_ID, quantity: 1 }],
+      );
+
+      const [events] = await sequelize.query(
+        `SELECT event_type FROM outbox_events WHERE payload->>'serviceOrderId' = '${created.id}';`,
+      );
+      expect(events).toEqual([{ event_type: "quotation.requested" }]);
+    });
+  });
 });

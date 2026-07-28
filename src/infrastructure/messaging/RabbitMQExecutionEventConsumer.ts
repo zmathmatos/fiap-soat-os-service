@@ -13,7 +13,8 @@ type ExecutionEventPayload = {
   services?: DiagnosticService[];
 };
 
-const PERMANENT_FAILURE = /not found|Unknown execution event|Missing serviceOrderId/i;
+const PERMANENT_FAILURE =
+  /not found|Unknown execution event|Missing serviceOrderId|violates foreign key constraint/i;
 
 export class RabbitMQExecutionEventConsumer extends RabbitMQEventConsumer<ExecutionEventPayload> {
   constructor(private readonly serviceOrderController: ServiceOrderController) {

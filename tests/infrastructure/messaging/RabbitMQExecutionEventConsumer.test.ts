@@ -120,6 +120,20 @@ describe("RabbitMQExecutionEventConsumer", () => {
     expect(mockChannel.nack).toHaveBeenCalledWith(message, false, false);
   });
 
+  it("drops the message (no requeue) on a foreign key violation", async () => {
+    applyExecutionEvent.mockRejectedValue(
+      new Error(
+        'insert or update on table "service_order_services" violates foreign key constraint "service_order_services_serviceId_fkey"',
+      ),
+    );
+    const message = makeMessage("diagnostic.finished", { serviceOrderId: "so-1" });
+
+    consumeCallback(message);
+    await flushPromises();
+
+    expect(mockChannel.nack).toHaveBeenCalledWith(message, false, false);
+  });
+
   it("requeues the message on a transient error", async () => {
     applyExecutionEvent.mockRejectedValue(new Error("connection reset"));
     const message = makeMessage("execution.finished", { serviceOrderId: "so-1" });
