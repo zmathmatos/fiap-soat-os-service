@@ -1,4 +1,4 @@
-import { Op, Sequelize } from "sequelize";
+import { Model, ModelStatic, Op, Sequelize, Transaction } from "sequelize";
 import {
   ServiceOrderModel,
   ServiceOrderModelPart,
@@ -14,6 +14,9 @@ import {
 } from "../../domain/repositories/IServiceOrderRepository";
 import { sequelize } from "../database/sequelize/init";
 import { insertOutboxEvent } from "../database/sequelize/models/OutboxEventModel";
+import { PartModel } from "../database/sequelize/models/PartModel";
+import { ServiceModel } from "../database/sequelize/models/ServiceModel";
+import Logger from "../database/sequelize/utils/Logger";
 
 export class ServiceOrderRepository implements IServiceOrderRepository {
   async create(
@@ -245,7 +248,27 @@ export class ServiceOrderRepository implements IServiceOrderRepository {
         await insertOutboxEvent("quotation.requested", { serviceOrderId: id }, t);
       }
 
-      if (serviceIds && serviceIds.length > 0) {
+      const catalogServices = await this.existingIds(ServiceModel, serviceIds, t);
+      const catalogParts = await this.existingIds(
+        PartModel,
+        partsQuantities?.map((partQtt) => partQtt.partId),
+        t,
+      );
+
+      const knownServiceIds = this.dropUnknown(
+        serviceIds,
+        (serviceId) => catalogServices.has(serviceId),
+        id,
+        "service",
+      );
+      const knownPartsQuantities = this.dropUnknown(
+        partsQuantities,
+        (partQtt) => catalogParts.has(partQtt.partId),
+        id,
+        "part",
+      );
+
+      if (knownServiceIds && knownServiceIds.length > 0) {
         const existingServices = await ServiceOrderModelService.findAll({
           where: { serviceOrderId: id },
           transaction: t,
@@ -253,8 +276,8 @@ export class ServiceOrderRepository implements IServiceOrderRepository {
         const existingServiceIds = new Set(
           existingServices.map((s) => (s as any).serviceId as string),
         );
-        const newServiceIds = serviceIds.filter(
-          (sid) => !existingServiceIds.has(sid),
+        const newServiceIds = knownServiceIds.filter(
+          (serviceId) => !existingServiceIds.has(serviceId),
         );
         if (newServiceIds.length > 0) {
           const order = await ServiceOrderModel.findByPk(id, {
@@ -264,8 +287,8 @@ export class ServiceOrderRepository implements IServiceOrderRepository {
         }
       }
 
-      if (partsQuantities && partsQuantities.length > 0) {
-        for (const partQtt of partsQuantities) {
+      if (knownPartsQuantities && knownPartsQuantities.length > 0) {
+        for (const partQtt of knownPartsQuantities) {
           const existing = await ServiceOrderModelPart.findOne({
             where: { serviceOrderId: id, partId: partQtt.partId },
             transaction: t,
@@ -307,6 +330,47 @@ export class ServiceOrderRepository implements IServiceOrderRepository {
 
       return this.parseServiceOrder(updated);
     });
+  }
+
+  private async existingIds(
+    model: ModelStatic<Model>,
+    ids: string[] | undefined,
+    t: Transaction,
+  ): Promise<Set<string>> {
+    if (!ids || ids.length === 0) {
+      return new Set();
+    }
+
+    const rows = await model.findAll({
+      where: { id: { [Op.in]: ids } },
+      attributes: ["id"],
+      transaction: t,
+    });
+
+    return new Set(rows.map((row) => row.get("id") as string));
+  }
+
+  private dropUnknown<T>(
+    items: T[] | undefined,
+    isKnown: (item: T) => boolean,
+    serviceOrderId: string,
+    kind: "part" | "service",
+  ): T[] | undefined {
+    if (!items || items.length === 0) {
+      return items;
+    }
+
+    const known = items.filter(isKnown);
+    if (known.length !== items.length) {
+      Logger.warn(`Ignoring unknown ${kind} ids in service order update`, {
+        event: "service-order.unknown-catalog-ids",
+        "order.id": serviceOrderId,
+        kind,
+        ignored: items.length - known.length,
+      });
+    }
+
+    return known;
   }
 
   async delete(id: string): Promise<boolean> {
